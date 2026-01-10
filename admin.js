@@ -1200,17 +1200,32 @@ function testBlogGeneration() {
 
 // Otomatik blog mesajı göster
 function showAutoBlogMessage(text, type) {
+    console.log('showAutoBlogMessage çağrıldı:', text, type);
     const messageDiv = document.getElementById('auto-blog-message');
-    if (!messageDiv) return;
+    
+    if (!messageDiv) {
+        console.error('auto-blog-message elementi bulunamadı!');
+        // Fallback: alert göster
+        alert(text);
+        return;
+    }
     
     messageDiv.textContent = text;
     messageDiv.className = `message ${type}`;
     messageDiv.style.display = 'block';
+    messageDiv.style.backgroundColor = type === 'success' ? '#d4edda' : '#f8d7da';
+    messageDiv.style.color = type === 'success' ? '#155724' : '#721c24';
+    messageDiv.style.padding = '12px';
+    messageDiv.style.borderRadius = '4px';
+    messageDiv.style.marginTop = '10px';
+    messageDiv.style.border = type === 'success' ? '1px solid #c3e6cb' : '1px solid #f5c6cb';
     
     if (type === 'success') {
         setTimeout(() => {
-            messageDiv.style.display = 'none';
-        }, 4000);
+            if (messageDiv) {
+                messageDiv.style.display = 'none';
+            }
+        }, 5000);
     }
 }
 
