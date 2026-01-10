@@ -620,13 +620,14 @@ function loadBlogPosts() {
     blogPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
     
     container.innerHTML = blogPosts.map((post, index) => `
-        <div class="blog-post-item" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-                <h4 style="margin: 0; color: #2c3e50; font-size: 16px;">${escapeHtml(post.title)}</h4>
-                <button onclick="deleteBlogPost('${post.id}')" class="delete-btn" style="background: #dc3545; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px;">🗑️ Sil</button>
+        <div class="blog-post-item" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 10px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <div style="flex: 1; min-width: 0;">
+                <h4 style="margin: 0; color: #2c3e50; font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(post.title)}</h4>
             </div>
-            <p style="color: #666; font-size: 12px; margin: 5px 0;">${formatDate(post.date)}</p>
-            <p style="color: #495057; font-size: 14px; line-height: 1.5; margin: 10px 0 0; max-height: 100px; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(post.content.substring(0, 150))}${post.content.length > 150 ? '...' : ''}</p>
+            <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                <button onclick="editBlogPost('${post.id}')" class="edit-btn" style="background: #007bff; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; white-space: nowrap;">✏️ Düzenle</button>
+                <button onclick="deleteBlogPost('${post.id}')" class="delete-btn" style="background: #dc3545; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px; white-space: nowrap;">🗑️ Sil</button>
+            </div>
         </div>
     `).join('');
 }
@@ -674,6 +675,108 @@ function addBlogPost() {
     loadBlogPosts();
     
     showBlogMessage('✅ Blog yazısı başarıyla eklendi!', 'success');
+    
+    // Forma scroll et (yeni eklenen yazıyı görmek için)
+    setTimeout(() => {
+        const blogPostsList = document.getElementById('blog-posts-list');
+        if (blogPostsList) {
+            blogPostsList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, 100);
+}
+
+// Blog yazısı düzenle
+let editingBlogPostId = null;
+
+function editBlogPost(id) {
+    const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    const post = blogPosts.find(p => p.id === id);
+    
+    if (!post) {
+        showBlogMessage('Blog yazısı bulunamadı!', 'error');
+        return;
+    }
+    
+    // Formu doldur
+    const titleInput = document.getElementById('blog-title');
+    const contentInput = document.getElementById('blog-content');
+    const addBtn = document.getElementById('add-blog-btn');
+    
+    if (titleInput) titleInput.value = post.title;
+    if (contentInput) contentInput.value = post.content;
+    
+    // Butonu güncelle
+    if (addBtn) {
+        addBtn.textContent = '💾 Değişiklikleri Kaydet';
+        addBtn.onclick = function() {
+            updateBlogPost(id);
+        };
+    }
+    
+    // Düzenlenen ID'yi sakla
+    editingBlogPostId = id;
+    
+    // Forma scroll et
+    const blogSection = document.querySelector('.admin-section:last-child');
+    if (blogSection) {
+        blogSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    
+    showBlogMessage('✏️ Blog yazısını düzenleyin ve kaydedin.', 'success');
+}
+
+// Blog yazısı güncelle
+function updateBlogPost(id) {
+    const titleInput = document.getElementById('blog-title');
+    const contentInput = document.getElementById('blog-content');
+    const addBtn = document.getElementById('add-blog-btn');
+    
+    if (!titleInput || !contentInput) return;
+    
+    const title = titleInput.value.trim();
+    const content = contentInput.value.trim();
+    
+    // Validasyon
+    if (!title) {
+        showBlogMessage('Lütfen blog yazısı başlığı girin!', 'error');
+        return;
+    }
+    
+    if (!content) {
+        showBlogMessage('Lütfen blog yazısı içeriği girin!', 'error');
+        return;
+    }
+    
+    // LocalStorage'dan al ve güncelle
+    const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    const postIndex = blogPosts.findIndex(p => p.id === id);
+    
+    if (postIndex === -1) {
+        showBlogMessage('Blog yazısı bulunamadı!', 'error');
+        return;
+    }
+    
+    // Mevcut tarihi koru, sadece içerik ve başlığı güncelle
+    blogPosts[postIndex].title = title;
+    blogPosts[postIndex].content = content;
+    
+    localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+    
+    // Formu temizle ve butonu sıfırla
+    titleInput.value = '';
+    contentInput.value = '';
+    
+    if (addBtn) {
+        addBtn.textContent = '➕ Yeni Blog Yazısı Ekle';
+        addBtn.onclick = addBlogPost;
+    }
+    
+    editingBlogPostId = null;
+    
+    // Listeyi yenile
+    loadBlogPosts();
+    
+    showBlogMessage('✅ Blog yazısı başarıyla güncellendi!', 'success');
 }
 
 // Blog yazısı sil
@@ -683,6 +786,23 @@ function deleteBlogPost(id) {
     const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
     const filteredPosts = blogPosts.filter(post => post.id !== id);
     localStorage.setItem('blogPosts', JSON.stringify(filteredPosts));
+    
+    // Eğer silinen yazı düzenleniyorsa, formu temizle
+    if (editingBlogPostId === id) {
+        const titleInput = document.getElementById('blog-title');
+        const contentInput = document.getElementById('blog-content');
+        const addBtn = document.getElementById('add-blog-btn');
+        
+        if (titleInput) titleInput.value = '';
+        if (contentInput) contentInput.value = '';
+        
+        if (addBtn) {
+            addBtn.textContent = '➕ Yeni Blog Yazısı Ekle';
+            addBtn.onclick = addBlogPost;
+        }
+        
+        editingBlogPostId = null;
+    }
     
     loadBlogPosts();
     showBlogMessage('✅ Blog yazısı silindi!', 'success');
