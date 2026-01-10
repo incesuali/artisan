@@ -176,13 +176,45 @@ async function generateBlogPostNowGlobal(isAuto = false) {
         date: blogPost.date
     };
     
-    // Önce localStorage'dan mevcut yazıları al
-    let blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
-    blogPosts.push(blogPostObj);
-    
-    // ÖNCE VERCEL BLOB STORAGE'A KAYDET (ÖNEMLİ!)
+    // ÖNCE VERCEL BLOB STORAGE'DAN MEVCUT YAZILARI AL (ÖNEMLİ - localStorage'dan değil!)
+    let blogPosts = [];
     try {
-        console.log('💾 Vercel Blob Storage\'a kaydediliyor...');
+        console.log('📥 Mevcut blog yazıları Vercel Blob Storage\'dan alınıyor...');
+        const getResponse = await fetch(`/api/blog-posts?t=${Date.now()}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+            },
+            cache: 'no-store'
+        });
+        
+        if (getResponse.ok) {
+            const getData = await getResponse.json();
+            if (getData.success && getData.posts && Array.isArray(getData.posts)) {
+                blogPosts = getData.posts;
+                console.log('✅ Mevcut blog yazıları alındı:', blogPosts.length, 'yazı');
+            }
+        }
+    } catch (error) {
+        console.error('⚠️ Mevcut blog yazıları alınırken hata, localStorage\'dan yüklenecek:', error);
+        // Fallback: localStorage'dan al
+        blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    }
+    
+    // Eğer Vercel Blob Storage'dan alamazsak, localStorage'dan al
+    if (blogPosts.length === 0) {
+        blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+        console.log('💾 Fallback: localStorage\'dan mevcut blog yazıları alındı:', blogPosts.length);
+    }
+    
+    // Yeni blog yazısını ekle
+    blogPosts.push(blogPostObj);
+    console.log('➕ Yeni blog yazısı eklendi. Toplam:', blogPosts.length, 'yazı');
+    
+    // ŞİMDI VERCEL BLOB STORAGE'A KAYDET (TÜM YAZILARLA BİRLİKTE)
+    try {
+        console.log('💾 Vercel Blob Storage\'a kaydediliyor...', blogPosts.length, 'yazı');
         const response = await fetch('/api/blog-posts', {
             method: 'POST',
             headers: {
