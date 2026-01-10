@@ -368,10 +368,12 @@
             return urlParams.get(name);
         }
         
-        // Blog yazısını yükle ve göster
-        function loadBlogPost() {
+        // Blog yazısını yükle ve göster - ASYNC YAPILDI!
+        async function loadBlogPost() {
             const postId = getUrlParameter('id');
             const container = document.getElementById('blog-post-content');
+            
+            console.log('🔍 Blog yazısı yükleniyor, ID:', postId);
             
             if (!postId) {
                 container.innerHTML = `
@@ -385,27 +387,52 @@
             
             // Önce Vercel Blob Storage'dan yükle, yoksa localStorage'dan
             let blogPosts = [];
+            let loadedFromBlob = false;
+            
             try {
-                const response = await fetch('/api/blog-posts');
+                console.log('📥 Vercel Blob Storage\'dan blog yazıları alınıyor...');
+                const timestamp = Date.now(); // Cache bypass için timestamp
+                const response = await fetch(`/api/blog-posts?t=${timestamp}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    },
+                    cache: 'no-store',
+                    credentials: 'omit'
+                });
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
                 const data = await response.json();
-                console.log('API Response (blog-post):', data);
+                console.log('📦 API Response (blog-post):', data);
+                console.log('📊 Blog yazı sayısı (API):', data.count || data.posts?.length || 0);
                 
                 if (data.success && data.posts && Array.isArray(data.posts)) {
                     blogPosts = data.posts;
+                    loadedFromBlob = true;
                     console.log('✅ Blog yazıları Vercel Blob Storage\'dan yüklendi (blog-post):', blogPosts.length);
+                    
+                    // Blog yazılarını console'da göster (debug için)
+                    if (blogPosts.length > 0) {
+                        console.log('📝 Blog yazıları:', blogPosts.map(p => ({ id: p.id, title: p.title, date: p.date })));
+                    }
                     
                     // localStorage'a da kaydet (fallback için)
                     if (blogPosts.length > 0) {
                         localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+                        console.log('💾 Blog yazıları localStorage\'a cache olarak kaydedildi');
                     }
+                } else {
+                    console.warn('⚠️ API başarılı ama posts array bulunamadı veya boş:', data);
                 }
             } catch (error) {
-                console.error('⚠️ Vercel Blob Storage\'dan yükleme hatası (blog-post), localStorage\'dan yüklenecek:', error);
+                console.error('❌ Vercel Blob Storage\'dan yükleme hatası (blog-post):', error);
+                console.error('Error details:', error.message);
             }
             
             // Vercel Blob Storage'da yoksa veya hata varsa, localStorage'dan yükle
@@ -415,7 +442,7 @@
                 console.log('✅ Blog yazıları localStorage\'dan yüklendi (blog-post):', blogPosts.length);
                 
                 // Eğer localStorage'da varsa ama Vercel Blob Storage'da yoksa, senkronize et
-                if (blogPosts.length > 0) {
+                if (blogPosts.length > 0 && !loadedFromBlob) {
                     console.log('💡 localStorage\'da blog yazıları var, Vercel Blob Storage\'a senkronize ediliyor...');
                     try {
                         const syncResponse = await fetch('/api/blog-posts', {
@@ -428,6 +455,8 @@
                         const syncData = await syncResponse.json();
                         if (syncData.success) {
                             console.log('✅ Blog yazıları Vercel Blob Storage\'a senkronize edildi (blog-post)!');
+                        } else {
+                            console.error('⚠️ Senkronizasyon hatası:', syncData.error);
                         }
                     } catch (syncError) {
                         console.error('⚠️ Senkronizasyon hatası (blog-post):', syncError);
@@ -435,17 +464,24 @@
                 }
             }
             
+            console.log('🔍 Aranacak blog ID:', postId);
+            console.log('📚 Toplam blog yazı sayısı:', blogPosts.length);
+            
             const post = blogPosts.find(p => p.id === postId);
             
             if (!post) {
+                console.error('❌ Blog yazısı bulunamadı! ID:', postId);
+                console.error('📝 Mevcut blog ID\'leri:', blogPosts.map(p => p.id));
                 container.innerHTML = `
                     <div class="error">
-                        <p>Article non trouvé.</p>
+                        <p>Article non trouvé (ID: ${postId}).</p>
                         <a href="blog.html" style="color: #74b9ff; text-decoration: underline;">Retour au blog</a>
                     </div>
                 `;
                 return;
             }
+            
+            console.log('✅ Blog yazısı bulundu:', { id: post.id, title: post.title, date: post.date });
             
             // Slug oluştur
             const slug = post.title.toLowerCase()
