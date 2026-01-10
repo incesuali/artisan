@@ -533,6 +533,61 @@ body::before {
     color: #74b9ff;
 }
 
+/* Blog Section */
+.blog-section {
+    margin-bottom: 18px;
+    background: rgba(0, 0, 0, 0.3) !important;
+    padding: 24px 20px;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #333333;
+    transition: all 0.3s ease;
+}
+
+.blog-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.blog-content {
+    color: #ffffff;
+}
+
+.blog-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 16px;
+    line-height: 1.4;
+}
+
+.blog-subtitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-top: 20px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.blog-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #ffffff;
+    margin-bottom: 14px;
+    text-align: center;
+}
+
+.blog-text:last-child {
+    margin-bottom: 0;
+}
+
+.blog-text strong {
+    font-weight: 600;
+    color: #ffffff;
+}
+
 /* Parquets Section */
 .parquets-section {
     margin-bottom: 18px;
@@ -695,7 +750,8 @@ body::before {
 .btn-whatsapp,
 .useful-links,
 .parquets-section,
-.contact-section {
+.contact-section,
+.blog-section {
     animation: slideUp 0.5s ease-out forwards;
 }
 
@@ -706,6 +762,7 @@ body::before {
 .useful-links { animation-delay: 0.3s; }
 .parquets-section { animation-delay: 0.33s; }
 .contact-section { animation-delay: 0.35s; }
+.blog-section { animation-delay: 0.4s; }
 
 /* Image Modal */
 .image-modal {
