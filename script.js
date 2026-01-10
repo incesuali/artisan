@@ -19,6 +19,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (whatsappBtn) {
         const encodedMessage = encodeURIComponent(CONFIG.whatsappMessage);
         whatsappBtn.href = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodedMessage}`;
+        
+        // Google Analytics event tracking - WhatsApp buton tıklaması
+        whatsappBtn.addEventListener('click', function() {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'whatsapp_click', {
+                    'event_category': 'Contact',
+                    'event_label': 'WhatsApp Button',
+                    'value': 1
+                });
+                console.log('📊 Google Analytics: WhatsApp button click tracked');
+            }
+        });
     }
 
     // "Nos réalisations" butonu işlevi - Modal aç
@@ -35,6 +47,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (btnMessage) {
         btnMessage.addEventListener('click', function() {
+            // Google Analytics event tracking - SMS buton tıklaması
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'sms_click', {
+                    'event_category': 'Contact',
+                    'event_label': 'SMS Button',
+                    'value': 1
+                });
+                console.log('📊 Google Analytics: SMS button click tracked');
+            }
+            
             // SMS protokolü ile telefon numarasını aç
             const phoneNumber = CONFIG.phoneNumber.replace(/\s/g, ''); // Boşlukları kaldır
             window.location.href = `sms:${phoneNumber}`;
