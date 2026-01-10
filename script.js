@@ -52,7 +52,37 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // İlk 4 resmi preload et (hızlı görüntüleme için)
     preloadFirstImages();
+    
+    // Otomatik blog sistemini kontrol et (her sayfa yüklendiğinde)
+    if (typeof checkAutoBlogSchedule === 'function') {
+        checkAutoBlogSchedule();
+    } else {
+        // Eğer admin.js yüklenmediyse, basit kontrol yap
+        checkAutoBlogSimple();
+    }
 });
+
+// Basit otomatik blog kontrolü (admin.js olmadan çalışır)
+function checkAutoBlogSimple() {
+    const enabled = localStorage.getItem('autoBlogEnabled') !== 'false'; // Varsayılan: true
+    if (!enabled) return;
+    
+    const lastDate = localStorage.getItem('lastAutoBlogDate');
+    if (!lastDate) {
+        // İlk kez - blog oluşturulması için admin panelini bekleyelim
+        return;
+    }
+    
+    const last = new Date(lastDate);
+    const now = new Date();
+    const diffDays = Math.floor((now - last) / (1000 * 60 * 60 * 24));
+    
+    // 10 gün geçtiyse, admin.js'teki fonksiyon çağrılacak (sayfa yenilendiğinde)
+    if (diffDays >= 10) {
+        console.log('Otomatik blog üretimi gerekiyor (10 gün geçti)');
+        // Admin panelinde generateBlogPostNow çağrılacak
+    }
+}
 
 // İlk 4 resmi preload et
 function preloadFirstImages() {
