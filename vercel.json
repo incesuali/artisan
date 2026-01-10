@@ -3,6 +3,11 @@
   "buildCommand": "echo 'Static site - no build needed'",
   "outputDirectory": ".",
   "framework": null,
-  "cleanUrls": true
+  "cleanUrls": true,
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  }
 }
 
