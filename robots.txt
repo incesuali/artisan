@@ -11,7 +11,7 @@ Disallow: /admin.html
 Disallow: /api/
 
 # Sitemap location
-Sitemap: https://artisanparquateur.vercel.app/sitemap.xml
+Sitemap: https://artisanparqueteurnord.xyz/sitemap.xml
 
 # Crawl-delay (optional, for aggressive crawlers)
 User-agent: *

@@ -7,24 +7,24 @@
   
   <!-- Homepage -->
   <url>
-    <loc>https://artisanparquateur.vercel.app/</loc>
-    <lastmod>2024-12-20</lastmod>
+    <loc>https://artisanparqueteurnord.xyz/</loc>
+    <lastmod>2025-01-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://artisanparquateur.vercel.app/"/>
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://artisanparqueteurnord.xyz/"/>
   </url>
   
   <!-- Blog Page -->
   <url>
-    <loc>https://artisanparquateur.vercel.app/blog.html</loc>
-    <lastmod>2024-12-20</lastmod>
+    <loc>https://artisanparqueteurnord.xyz/blog.html</loc>
+    <lastmod>2025-01-10</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://artisanparquateur.vercel.app/blog.html"/>
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://artisanparqueteurnord.xyz/blog.html"/>
   </url>
   
-  <!-- Note: Blog posts will be dynamically added via JavaScript -->
-  <!-- The sitemap can be regenerated programmatically to include all blog posts -->
+  <!-- Blog posts will be dynamically generated via /api/sitemap.xml endpoint -->
+  <!-- Static sitemap contains only main pages for faster initial indexing -->
   
 </urlset>
 
