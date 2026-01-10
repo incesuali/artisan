@@ -1270,50 +1270,66 @@ function saveAutoBlogSettings() {
     }
 }
 
-// Otomatik blog zamanlamasını kontrol et (global fonksiyon - her sayfada çalışabilir)
+// Otomatik blog zamanlamasını kontrol et (global fonksiyonu kullan)
 function checkAutoBlogSchedule() {
-    console.log('🔍 checkAutoBlogSchedule çağrıldı - Otomatik blog kontrolü başlatıldı');
+    // Eğer global fonksiyon varsa onu kullan, yoksa yerel versiyonu kullan
+    if (typeof checkAutoBlogScheduleGlobal === 'function') {
+        checkAutoBlogScheduleGlobal();
+        
+        // Admin paneli UI'ını güncelle
+        const lastDate = localStorage.getItem('lastAutoBlogDate');
+        const lastDateSpan = document.getElementById('last-blog-date');
+        const nextDateSpan = document.getElementById('next-blog-date');
+        
+        if (lastDateSpan) {
+            lastDateSpan.textContent = lastDate ? formatDate(lastDate) : 'Henüz üretilmemiş';
+        }
+        
+        if (nextDateSpan && lastDate) {
+            const nextDate = new Date(lastDate);
+            nextDate.setDate(nextDate.getDate() + 10);
+            nextDateSpan.textContent = formatDate(nextDate.toISOString());
+        }
+    } else {
+        // Fallback: Yerel versiyon (eski kod)
+        console.log('⚠️ Global fonksiyon bulunamadı, yerel versiyon kullanılıyor');
+        checkAutoBlogScheduleLocal();
+    }
+}
+
+// Yerel versiyon (fallback)
+function checkAutoBlogScheduleLocal() {
+    console.log('🔍 checkAutoBlogScheduleLocal çağrıldı');
     
-    // Eğer ayar yoksa, varsayılan olarak etkin yap
     let enabledValue = localStorage.getItem('autoBlogEnabled');
     if (enabledValue === null || enabledValue === '') {
         enabledValue = 'true';
         localStorage.setItem('autoBlogEnabled', 'true');
-        console.log('✅ Otomatik blog üretimi varsayılan olarak etkinleştirildi');
     }
     
     const enabled = enabledValue === 'true';
     
     if (!enabled) {
         console.log('⏸️ Otomatik blog üretimi devre dışı');
-        if (typeof updateAutoBlogStatus === 'function') {
-            updateAutoBlogStatus(null, null);
-        }
+        updateAutoBlogStatus(null, null);
         return;
     }
-    
-    console.log('✅ Otomatik blog üretimi etkin');
     
     const lastDate = localStorage.getItem('lastAutoBlogDate');
     const now = new Date();
     
-    console.log('📅 Son blog tarihi:', lastDate || 'Henüz üretilmemiş');
-    
     if (!lastDate) {
-        // İlk kez - hemen oluştur
-        console.log('🚀 İlk blog yazısı oluşturuluyor...');
-        setTimeout(() => {
-            generateBlogPostNow(true);
-        }, 1000); // 1 saniye bekle (sayfa yüklenmesi için)
+        const words1 = JSON.parse(localStorage.getItem('seoKeywords1') || '[]');
+        if (words1.length >= 4 && typeof generateBlogPostNow === 'function') {
+            console.log('🚀 İlk blog yazısı oluşturuluyor...');
+            setTimeout(() => generateBlogPostNow(true), 1000);
+        }
         return;
     }
     
     const last = new Date(lastDate);
     const diffDays = Math.floor((now - last) / (1000 * 60 * 60 * 24));
     
-    console.log('📊 Son blog tarihinden bu yana geçen gün:', diffDays);
-    
-    // UI elementlerini güncelle (sadece admin panelinde varsa)
     const lastDateSpan = document.getElementById('last-blog-date');
     const nextDateSpan = document.getElementById('next-blog-date');
     
@@ -1321,35 +1337,14 @@ function checkAutoBlogSchedule() {
         lastDateSpan.textContent = lastDate ? formatDate(lastDate) : 'Henüz üretilmemiş';
     }
     
-    if (nextDateSpan) {
-        if (lastDate) {
-            const nextDate = new Date(last);
-            nextDate.setDate(nextDate.getDate() + 10);
-            nextDateSpan.textContent = formatDate(nextDate.toISOString());
-            
-            if (diffDays >= 10) {
-                // 10 gün geçti, yeni blog oluştur
-                console.log('✅ 10 gün geçti! Yeni blog yazısı oluşturuluyor...');
-                setTimeout(() => {
-                    generateBlogPostNow(true);
-                }, 1000); // 1 saniye bekle
-            } else {
-                const remainingDays = 10 - diffDays;
-                console.log(`⏳ Henüz 10 gün geçmedi. Kalan gün: ${remainingDays}`);
-            }
-        } else {
-            nextDateSpan.textContent = '-';
-        }
-    } else {
-        // Admin paneli yoksa, yine de kontrol et ve blog oluştur
-        if (diffDays >= 10) {
-            console.log('✅ 10 gün geçti! Yeni blog yazısı oluşturuluyor (admin paneli yok)...');
-            setTimeout(() => {
-                generateBlogPostNow(true);
-            }, 1000);
-        } else {
-            const remainingDays = 10 - diffDays;
-            console.log(`⏳ Henüz 10 gün geçmedi. Kalan gün: ${remainingDays}`);
+    if (nextDateSpan && lastDate) {
+        const nextDate = new Date(last);
+        nextDate.setDate(nextDate.getDate() + 10);
+        nextDateSpan.textContent = formatDate(nextDate.toISOString());
+        
+        if (diffDays >= 10 && typeof generateBlogPostNow === 'function') {
+            console.log('✅ 10 gün geçti! Yeni blog yazısı oluşturuluyor...');
+            setTimeout(() => generateBlogPostNow(true), 1000);
         }
     }
 }
@@ -1368,29 +1363,55 @@ function updateAutoBlogStatus(lastDate, nextDate) {
     }
 }
 
-// Şimdi blog yazısı oluştur (global fonksiyon - her sayfada çalışabilir)
+// Şimdi blog yazısı oluştur (global fonksiyonu kullan)
 function generateBlogPostNow(isAuto = false) {
-    console.log('generateBlogPostNow çağrıldı, isAuto:', isAuto);
-    
+    // Eğer global fonksiyon varsa onu kullan
+    if (typeof generateBlogPostNowGlobal === 'function') {
+        const result = generateBlogPostNowGlobal(isAuto);
+        
+        // Admin paneli özel işlemler
+        if (typeof loadBlogPosts === 'function') {
+            loadBlogPosts();
+        }
+        
+        if (typeof updateAutoBlogStatus === 'function') {
+            const lastDate = localStorage.getItem('lastAutoBlogDate');
+            if (lastDate) {
+                const nextDate = new Date(lastDate);
+                nextDate.setDate(nextDate.getDate() + 10);
+                updateAutoBlogStatus(lastDate, nextDate.toISOString());
+            }
+        }
+        
+        if (typeof showAutoBlogMessage === 'function' && result) {
+            const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+            const lastPost = blogPosts[blogPosts.length - 1];
+            if (lastPost) {
+                showAutoBlogMessage(isAuto ? 
+                    `✅ Otomatik blog yazısı oluşturuldu: "${lastPost.title}"` : 
+                    `✅ Blog yazısı başarıyla oluşturuldu: "${lastPost.title}"`, 'success');
+            }
+        }
+        
+        return result;
+    } else {
+        // Fallback: Yerel versiyon (eski kod)
+        console.log('⚠️ Global fonksiyon bulunamadı, yerel versiyon kullanılıyor');
+        return generateBlogPostNowLocal(isAuto);
+    }
+}
+
+// Yerel versiyon (fallback)
+function generateBlogPostNowLocal(isAuto = false) {
     const blogPost = generateSEOBlogPost();
     
     if (!blogPost) {
-        console.error('Blog yazısı oluşturulamadı - kelimeler eksik!');
         if (typeof showAutoBlogMessage === 'function') {
             showAutoBlogMessage('❌ Blog yazısı oluşturulamadı! Önce kelimeleri kaydedin.', 'error');
-        } else {
-            console.error('❌ Blog yazısı oluşturulamadı! Önce kelimeleri kaydedin.');
         }
         return false;
     }
     
-    console.log('Blog yazısı oluşturuldu:', {
-        title: blogPost.title,
-        contentLines: blogPost.content.split('\n').length,
-        date: blogPost.date
-    });
-    
-    // Blog yazısı ekle
     const blogPostObj = {
         id: Date.now().toString(),
         title: blogPost.title,
@@ -1401,33 +1422,22 @@ function generateBlogPostNow(isAuto = false) {
     const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
     blogPosts.push(blogPostObj);
     localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
-    
-    // Son oluşturma tarihini kaydet
     localStorage.setItem('lastAutoBlogDate', blogPost.date);
     
-    console.log('Blog yazısı kaydedildi. Toplam blog sayısı:', blogPosts.length);
-    
-    // Blog listesini yenile (sadece admin panelinde varsa)
     if (typeof loadBlogPosts === 'function') {
         loadBlogPosts();
     }
     
-    // Durumu güncelle (sadece admin panelinde varsa)
     if (typeof updateAutoBlogStatus === 'function') {
         const nextDate = new Date();
         nextDate.setDate(nextDate.getDate() + 10);
         updateAutoBlogStatus(blogPost.date, nextDate.toISOString());
     }
     
-    // Mesaj göster (sadece admin panelinde varsa)
     if (typeof showAutoBlogMessage === 'function') {
         showAutoBlogMessage(isAuto ? 
             `✅ Otomatik blog yazısı oluşturuldu: "${blogPost.title}"` : 
             `✅ Blog yazısı başarıyla oluşturuldu: "${blogPost.title}"`, 'success');
-    } else {
-        console.log(isAuto ? 
-            `✅ Otomatik blog yazısı oluşturuldu: "${blogPost.title}"` : 
-            `✅ Blog yazısı başarıyla oluşturuldu: "${blogPost.title}"`);
     }
     
     return true;
