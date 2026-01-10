@@ -1,6 +1,8 @@
 const { put } = require('@vercel/blob');
 const Busboy = require('busboy');
 
+// Vercel Blob Storage token otomatik olarak BLOB_READ_WRITE_TOKEN environment variable'ından alınır
+
 module.exports = async function handler(req, res) {
   // Sadece POST isteklerini kabul et
   if (req.method !== 'POST') {
@@ -29,6 +31,7 @@ module.exports = async function handler(req, res) {
             const buffer = Buffer.concat(chunks);
             
             // Vercel Blob Storage'a yükle
+            // Token otomatik olarak BLOB_READ_WRITE_TOKEN environment variable'ından alınır
             const promise = put(`images/${filename}`, buffer, {
               access: 'public',
               addRandomSuffix: true,
