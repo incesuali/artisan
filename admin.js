@@ -655,12 +655,34 @@ function loadGalleryImages() {
 
 // ========== BLOG YÖNETİMİ ==========
 
-// Blog yazılarını yükle ve göster
-function loadBlogPosts() {
-    const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+// Blog yazılarını yükle ve göster (Vercel Blob Storage'dan veya localStorage'dan)
+async function loadBlogPosts() {
     const container = document.getElementById('blog-posts-list');
-    
     if (!container) return;
+    
+    let blogPosts = [];
+    
+    // Önce Vercel Blob Storage'dan yükle
+    try {
+        const response = await fetch('/api/blog-posts');
+        const data = await response.json();
+        
+        if (data.success && data.posts && Array.isArray(data.posts)) {
+            blogPosts = data.posts;
+            console.log('✅ Blog yazıları Vercel Blob Storage\'dan yüklendi:', blogPosts.length);
+            
+            // localStorage'a da kaydet (fallback için)
+            localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+        }
+    } catch (error) {
+        console.error('⚠️ Vercel Blob Storage\'dan yükleme hatası (localStorage\'dan yüklenecek):', error);
+    }
+    
+    // Vercel Blob Storage'da yoksa veya hata varsa, localStorage'dan yükle
+    if (blogPosts.length === 0) {
+        blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+        console.log('✅ Blog yazıları localStorage\'dan yüklendi:', blogPosts.length);
+    }
     
     if (blogPosts.length === 0) {
         container.innerHTML = '<p style="color: #666; font-style: italic;">Henüz blog yazısı eklenmemiş.</p>';
@@ -683,11 +705,10 @@ function loadBlogPosts() {
     `).join('');
 }
 
-// Blog yazısı ekle
-function addBlogPost() {
+// Blog yazısı ekle (Vercel Blob Storage'a kaydet)
+async function addBlogPost() {
     const titleInput = document.getElementById('blog-title');
     const contentInput = document.getElementById('blog-content');
-    const messageDiv = document.getElementById('blog-message');
     
     if (!titleInput || !contentInput) return;
     
@@ -713,21 +734,49 @@ function addBlogPost() {
         date: new Date().toISOString()
     };
     
-    // LocalStorage'a kaydet
-    const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    // Önce localStorage'dan mevcut yazıları al
+    let blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
     blogPosts.push(blogPost);
-    localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
     
-    // Formu temizle
-    titleInput.value = '';
-    contentInput.value = '';
+    // Vercel Blob Storage'a kaydet
+    try {
+        const response = await fetch('/api/blog-posts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ posts: blogPosts }),
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('✅ Blog yazısı Vercel Blob Storage\'a kaydedildi');
+            
+            // localStorage'a da kaydet (fallback için)
+            localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+            
+            // Formu temizle
+            titleInput.value = '';
+            contentInput.value = '';
+            
+            // Listeyi yenile
+            await loadBlogPosts();
+            
+            showBlogMessage('✅ Blog yazısı başarıyla eklendi! (Vercel Blob Storage)', 'success');
+        } else {
+            throw new Error(data.error || 'Bilinmeyen hata');
+        }
+    } catch (error) {
+        console.error('⚠️ Vercel Blob Storage kaydetme hatası, localStorage\'a kaydediliyor:', error);
+        
+        // Hata durumunda localStorage'a kaydet (fallback)
+        localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+        await loadBlogPosts();
+        showBlogMessage('⚠️ Blog yazısı localStorage\'a kaydedildi (Vercel Blob Storage hatası). Lütfen tekrar deneyin.', 'error');
+    }
     
-    // Listeyi yenile
-    loadBlogPosts();
-    
-    showBlogMessage('✅ Blog yazısı başarıyla eklendi!', 'success');
-    
-    // Forma scroll et (yeni eklenen yazıyı görmek için)
+    // Forma scroll et
     setTimeout(() => {
         const blogPostsList = document.getElementById('blog-posts-list');
         if (blogPostsList) {
@@ -898,202 +947,130 @@ function formatDate(dateString) {
 
 // ========== SEO OTOMATIK BLOG YAZISI ÜRETİCİ ==========
 
-// Kelimeleri yükle
-function loadKeywords() {
+// Kelimeleri yükle (Vercel Blob Storage'dan veya localStorage'dan)
+async function loadKeywords() {
     const keywords1 = document.getElementById('keywords-1');
     const keywords2 = document.getElementById('keywords-2');
     const keywords3 = document.getElementById('keywords-3');
     const keywords4 = document.getElementById('keywords-4');
     
-    // Varsayılan kelimeler
-    const defaultKeywords1 = [
-        'Parquet massif',
-        'Parquet contrecollé',
-        'Parquet stratifié',
-        'Parquet flottant',
-        'Parquet adhésif',
-        'Parquet sur mesure',
-        'Parquet vieilli',
-        'Parquet exotique',
-        'Revêtement de sol vinyle',
-        'Parquet en chêne',
-        'Parquet en bambou',
-        'Parquet huilé',
-        'Parquet verni',
-        'Parquet brut',
-        'Parquet huilé-cire'
-    ];
+    // Önce Vercel Blob Storage'dan yükle
+    try {
+        const response = await fetch('/api/seo-keywords');
+        const data = await response.json();
+        
+        if (data.success && data.keywords) {
+            const kw = data.keywords;
+            
+            if (keywords1) keywords1.value = (kw.category1 || []).join('\n');
+            if (keywords2) keywords2.value = (kw.category2 || []).join('\n');
+            if (keywords3) keywords3.value = (kw.category3 || []).join('\n');
+            if (keywords4) keywords4.value = (kw.category4 || []).join('\n');
+            
+            // localStorage'a da kaydet (fallback için)
+            if (kw.category1 && kw.category1.length > 0) {
+                localStorage.setItem('seoKeywords1', JSON.stringify(kw.category1));
+                localStorage.setItem('seoKeywords2', JSON.stringify(kw.category2 || []));
+                localStorage.setItem('seoKeywords3', JSON.stringify(kw.category3 || []));
+                localStorage.setItem('seoKeywords4', JSON.stringify(kw.category4 || []));
+            }
+            
+            // Eğer kelimeler varsa, varsayılan kelimeleri kullanma
+            if (kw.category1 && kw.category1.length > 0) {
+                console.log('✅ Kelimeler Vercel Blob Storage\'dan yüklendi');
+                return;
+            }
+        }
+    } catch (error) {
+        console.error('Vercel Blob Storage\'dan yükleme hatası:', error);
+        // Hata durumunda localStorage'dan yükle
+    }
     
-    const defaultKeywords2 = [
-        'Pose à l\'anglaise',
-        'Pose à la française',
-        'Parquet point de Hongrie',
-        'Parquet bâtons rompus',
-        'Dalles de Versailles',
-        'Pose en coupe de pierre',
-        'Pose à bâtons rompus double',
-        'Pose en échelle',
-        'Pose en damier',
-        'Pose en vannerie',
-        'Pose en fougère',
-        'Pose à joints perdus',
-        'Pose à joints alignés',
-        'Pose mosaïque'
-    ];
-    
-    const defaultKeywords3 = [
-        'Lille',
-        'Roubaix',
-        'Tourcoing',
-        'Villeneuve-d\'Ascq',
-        'Marcq-en-Barœul',
-        'Lambersart',
-        'Armentières',
-        'Loos',
-        'Hazebrouck',
-        'Bailleul',
-        'La Madeleine',
-        'Mons-en-Barœul',
-        'Croix',
-        'Wasquehal',
-        'Halluin',
-        'Hem',
-        'Roncq',
-        'Wattrelos',
-        'Faches-Thumesnil',
-        'Haubourdin',
-        'Wattignies',
-        'Saint-André-lez-Lille',
-        'Bondues',
-        'Mouvaux',
-        'Seclin',
-        'Marquette-lez-Lille',
-        'Wambrechies',
-        'Linselles',
-        'Lys-lez-Lannoy',
-        'Leers',
-        'Comines',
-        'Neuville-en-Ferrain',
-        'Nienie',
-        'Quesnoy-sur-Deûle',
-        'Houplines',
-        'La Chapelle-d\'Armentières',
-        'Erquinghem-Lys',
-        'Wavrin',
-        'Sainghin-en-Weppes',
-        'Annœullin',
-        'Provin',
-        'Bauvin',
-        'Wingles',
-        'Lens',
-        'Liévin',
-        'Hénin-Beaumont',
-        'Carvin',
-        'Libercourt',
-        'Courrières',
-        'Harnes',
-        'Méricourt',
-        'Billy-Montigny',
-        'Sallaumines',
-        'Noyelles-Godault',
-        'Montigny-en-Gohelle',
-        'Oignies',
-        'Dourges',
-        'Ostricourt',
-        'Orchies',
-        'Cysoing',
-        'Baisieux',
-        'Templeuve-en-Pévèle',
-        'Pont-à-Marcq',
-        'Lesquin',
-        'Ronchin',
-        'Vendin-le-Vieil',
-        'Loison-sous-Lens',
-        'Avion',
-        'Douai',
-        'Sin-le-Noble',
-        'Auby',
-        'Cuincy',
-        'Lauwin-Planque',
-        'Roost-Warendin',
-        'Flers-en-Escrebieux',
-        'Pecquencourt',
-        'Aniche',
-        'Somain',
-        'Mouscron (BE)',
-        'Tournai (BE)',
-        'Menen (BE)',
-        'Kortrijk (BE)',
-        'Comines-Warneton (BE)',
-        'Estaimpuis (BE)',
-        'Péruwelz (BE)'
-    ];
-    
-    const defaultKeywords4 = [
-        'Leroy Merlin',
-        'Castorama',
-        'Brico Dépôt',
-        'Bricoman',
-        'Bricorama',
-        'Bricomarché',
-        'Mr.Bricolage'
-    ];
-    
-    // LocalStorage'dan yükle, yoksa varsayılanları kullan
+    // Vercel Blob Storage'da yoksa veya hata varsa, localStorage'dan yükle
     let stored1 = JSON.parse(localStorage.getItem('seoKeywords1') || '[]');
     let stored2 = JSON.parse(localStorage.getItem('seoKeywords2') || '[]');
     let stored3 = JSON.parse(localStorage.getItem('seoKeywords3') || '[]');
     let stored4 = JSON.parse(localStorage.getItem('seoKeywords4') || '[]');
     
-    // Eğer localStorage boşsa, varsayılan kelimeleri kaydet
+    // Varsayılan kelimeler (eğer hiç yoksa)
+    const defaultKeywords1 = [
+        'Parquet massif', 'Parquet contrecollé', 'Parquet stratifié', 'Parquet flottant',
+        'Parquet adhésif', 'Parquet sur mesure', 'Parquet vieilli', 'Parquet exotique',
+        'Revêtement de sol vinyle', 'Parquet en chêne', 'Parquet en bambou',
+        'Parquet huilé', 'Parquet verni', 'Parquet brut', 'Parquet huilé-cire'
+    ];
+    
+    const defaultKeywords2 = [
+        'Pose à l\'anglaise', 'Pose à la française', 'Parquet point de Hongrie',
+        'Parquet bâtons rompus', 'Dalles de Versailles', 'Pose en coupe de pierre',
+        'Pose à bâtons rompus double', 'Pose en échelle', 'Pose en damier',
+        'Pose en vannerie', 'Pose en fougère', 'Pose à joints perdus',
+        'Pose à joints alignés', 'Pose mosaïque'
+    ];
+    
+    const defaultKeywords3 = [
+        'Lille', 'Roubaix', 'Tourcoing', 'Villeneuve-d\'Ascq', 'Marcq-en-Barœul',
+        'Lambersart', 'Armentières', 'Loos', 'Hazebrouck', 'Bailleul',
+        'La Madeleine', 'Mons-en-Barœul', 'Croix', 'Wasquehal', 'Halluin',
+        'Hem', 'Roncq', 'Wattrelos', 'Faches-Thumesnil', 'Haubourdin',
+        'Wattignies', 'Saint-André-lez-Lille', 'Bondues', 'Mouvaux', 'Seclin',
+        'Marquette-lez-Lille', 'Wambrechies', 'Linselles', 'Lys-lez-Lannoy',
+        'Leers', 'Comines', 'Neuville-en-Ferrain', 'Nienie', 'Quesnoy-sur-Deûle',
+        'Houplines', 'La Chapelle-d\'Armentières', 'Erquinghem-Lys', 'Wavrin',
+        'Sainghin-en-Weppes', 'Annœullin', 'Provin', 'Bauvin', 'Wingles',
+        'Lens', 'Liévin', 'Hénin-Beaumont', 'Carvin', 'Libercourt', 'Courrières',
+        'Harnes', 'Méricourt', 'Billy-Montigny', 'Sallaumines', 'Noyelles-Godault',
+        'Montigny-en-Gohelle', 'Oignies', 'Dourges', 'Ostricourt', 'Orchies',
+        'Cysoing', 'Baisieux', 'Templeuve-en-Pévèle', 'Pont-à-Marcq', 'Lesquin',
+        'Ronchin', 'Vendin-le-Vieil', 'Loison-sous-Lens', 'Avion', 'Douai',
+        'Sin-le-Noble', 'Auby', 'Cuincy', 'Lauwin-Planque', 'Roost-Warendin',
+        'Flers-en-Escrebieux', 'Pecquencourt', 'Aniche', 'Somain',
+        'Mouscron (BE)', 'Tournai (BE)', 'Menen (BE)', 'Kortrijk (BE)',
+        'Comines-Warneton (BE)', 'Estaimpuis (BE)', 'Péruwelz (BE)'
+    ];
+    
+    const defaultKeywords4 = [
+        'Leroy Merlin', 'Castorama', 'Brico Dépôt', 'Bricoman',
+        'Bricorama', 'Bricomarché', 'Mr.Bricolage'
+    ];
+    
+    // Eğer localStorage boşsa, varsayılan kelimeleri kullan
     if (stored1.length === 0) {
         stored1 = defaultKeywords1;
-        localStorage.setItem('seoKeywords1', JSON.stringify(stored1));
     }
-    
     if (stored2.length === 0) {
         stored2 = defaultKeywords2;
-        localStorage.setItem('seoKeywords2', JSON.stringify(stored2));
     }
-    
     if (stored3.length === 0) {
         stored3 = defaultKeywords3;
-        localStorage.setItem('seoKeywords3', JSON.stringify(stored3));
     }
-    
     if (stored4.length === 0) {
         stored4 = defaultKeywords4;
-        localStorage.setItem('seoKeywords4', JSON.stringify(stored4));
     }
     
     // UI'ya yükle
-    if (keywords1) {
-        keywords1.value = stored1.join('\n');
-    }
+    keywords1.value = stored1.join('\n');
+    keywords2.value = stored2.join('\n');
+    keywords3.value = stored3.join('\n');
+    keywords4.value = stored4.join('\n');
     
-    if (keywords2) {
-        keywords2.value = stored2.join('\n');
-    }
+    // localStorage'a kaydet (fallback için)
+    localStorage.setItem('seoKeywords1', JSON.stringify(stored1));
+    localStorage.setItem('seoKeywords2', JSON.stringify(stored2));
+    localStorage.setItem('seoKeywords3', JSON.stringify(stored3));
+    localStorage.setItem('seoKeywords4', JSON.stringify(stored4));
     
-    if (keywords3) {
-        keywords3.value = stored3.join('\n');
-    }
-    
-    if (keywords4) {
-        keywords4.value = stored4.join('\n');
-    }
+    console.log('✅ Kelimeler yüklendi (localStorage/varsayılan)');
 }
 
-// Kelimeleri kaydet
-function saveKeywords() {
+// Kelimeleri kaydet (Vercel Blob Storage'a ve localStorage'a)
+async function saveKeywords() {
     console.log('saveKeywords fonksiyonu çağrıldı');
     
     const keywords1 = document.getElementById('keywords-1');
     const keywords2 = document.getElementById('keywords-2');
     const keywords3 = document.getElementById('keywords-3');
     const keywords4 = document.getElementById('keywords-4');
-    
-    console.log('Elementler:', { keywords1, keywords2, keywords3, keywords4 });
     
     if (!keywords1 || !keywords2 || !keywords3 || !keywords4) {
         console.error('Kelimeler alanları bulunamadı!');
@@ -1124,24 +1101,51 @@ function saveKeywords() {
         return;
     }
     
-    // LocalStorage'a kaydet
+    // Önce Vercel Blob Storage'a kaydet
     try {
-        localStorage.setItem('seoKeywords1', JSON.stringify(words1));
-        localStorage.setItem('seoKeywords2', JSON.stringify(words2));
-        localStorage.setItem('seoKeywords3', JSON.stringify(words3));
-        localStorage.setItem('seoKeywords4', JSON.stringify(words4));
-        
-        console.log('Kelimeler kaydedildi:', {
-            keywords1: words1.length,
-            keywords2: words2.length,
-            keywords3: words3.length,
-            keywords4: words4.length
+        const response = await fetch('/api/seo-keywords', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                category1: words1,
+                category2: words2,
+                category3: words3,
+                category4: words4,
+            }),
         });
         
-        showAutoBlogMessage('✅ Kelimeler başarıyla kaydedildi! (1. Alan: ' + words1.length + ', 2. Alan: ' + words2.length + ', 3. Alan: ' + words3.length + ', 4. Alan: ' + words4.length + ')', 'success');
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('✅ Kelimeler Vercel Blob Storage\'a kaydedildi');
+            
+            // localStorage'a da kaydet (fallback için)
+            localStorage.setItem('seoKeywords1', JSON.stringify(words1));
+            localStorage.setItem('seoKeywords2', JSON.stringify(words2));
+            localStorage.setItem('seoKeywords3', JSON.stringify(words3));
+            localStorage.setItem('seoKeywords4', JSON.stringify(words4));
+            
+            showAutoBlogMessage('✅ Kelimeler başarıyla kaydedildi! (Vercel Blob Storage) (1. Alan: ' + words1.length + ', 2. Alan: ' + words2.length + ', 3. Alan: ' + words3.length + ', 4. Alan: ' + words4.length + ')', 'success');
+        } else {
+            throw new Error(data.error || 'Bilinmeyen hata');
+        }
     } catch (error) {
-        console.error('Kaydetme hatası:', error);
-        showAutoBlogMessage('❌ Kelimeler kaydedilirken bir hata oluştu: ' + error.message, 'error');
+        console.error('⚠️ Vercel Blob Storage kaydetme hatası, localStorage\'a kaydediliyor:', error);
+        
+        // Hata durumunda localStorage'a kaydet (fallback)
+        try {
+            localStorage.setItem('seoKeywords1', JSON.stringify(words1));
+            localStorage.setItem('seoKeywords2', JSON.stringify(words2));
+            localStorage.setItem('seoKeywords3', JSON.stringify(words3));
+            localStorage.setItem('seoKeywords4', JSON.stringify(words4));
+            
+            showAutoBlogMessage('⚠️ Kelimeler localStorage\'a kaydedildi (Vercel Blob Storage hatası). Lütfen tekrar deneyin.', 'error');
+        } catch (localError) {
+            console.error('localStorage kaydetme hatası:', localError);
+            showAutoBlogMessage('❌ Kelimeler kaydedilirken bir hata oluştu: ' + error.message, 'error');
+        }
     }
 }
 
