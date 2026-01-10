@@ -1,6 +1,6 @@
 // Konfigürasyon - LocalStorage'dan veya varsayılan değerlerden
 const CONFIG = {
-    whatsappNumber: localStorage.getItem('whatsappNumber') || '905555555555',  // WhatsApp numarası (ülke kodu ile, + işareti olmadan)
+    whatsappNumber: localStorage.getItem('whatsappNumber') || '33627943616',  // WhatsApp numarası (Fransa: 0627943616 -> 33627943616, ülke kodu ile, + işareti olmadan)
     phoneNumber: localStorage.getItem('phoneNumber') || '0627943616',  // Telefon numarası (SMS için)
     email: localStorage.getItem('email') || 'artisanparqueteurnord@gmail.com',        // E-mail adresi
     whatsappMessage: localStorage.getItem('whatsappMessage') || 'Bonjour, je souhaiterais obtenir un devis pour des travaux de parquet.' // Ön tanımlı mesaj
