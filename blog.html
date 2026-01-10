@@ -208,31 +208,67 @@
             // Önce Vercel Blob Storage'dan yükle
             try {
                 const response = await fetch('/api/blog-posts');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
+                console.log('API Response:', data);
                 
                 if (data.success && data.posts && Array.isArray(data.posts)) {
                     blogPosts = data.posts;
                     console.log('✅ Blog yazıları Vercel Blob Storage\'dan yüklendi:', blogPosts.length);
                     
                     // localStorage'a da kaydet (fallback için)
-                    localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+                    if (blogPosts.length > 0) {
+                        localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+                    }
+                } else {
+                    console.warn('⚠️ API başarılı ama posts array bulunamadı veya boş:', data);
                 }
             } catch (error) {
-                console.error('⚠️ Vercel Blob Storage\'dan yükleme hatası (localStorage\'dan yüklenecek):', error);
+                console.error('⚠️ Vercel Blob Storage\'dan yükleme hatası:', error);
+                console.error('Error details:', error.message);
             }
             
             // Vercel Blob Storage'da yoksa veya hata varsa, localStorage'dan yükle
             if (blogPosts.length === 0) {
-                blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+                const localPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+                blogPosts = localPosts;
                 console.log('✅ Blog yazıları localStorage\'dan yüklendi:', blogPosts.length);
+                
+                // Eğer localStorage'da varsa ama Vercel Blob Storage'da yoksa, senkronize et
+                if (blogPosts.length > 0) {
+                    console.log('💡 localStorage\'da blog yazıları var, Vercel Blob Storage\'a senkronize ediliyor...');
+                    try {
+                        const syncResponse = await fetch('/api/blog-posts', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ posts: blogPosts }),
+                        });
+                        const syncData = await syncResponse.json();
+                        if (syncData.success) {
+                            console.log('✅ Blog yazıları Vercel Blob Storage\'a senkronize edildi!');
+                        }
+                    } catch (syncError) {
+                        console.error('⚠️ Senkronizasyon hatası:', syncError);
+                    }
+                }
             }
             
             if (blogPosts.length === 0) {
                 container.innerHTML = `
                     <div class="no-blogs">
                         <p class="no-blogs-text">Aucun article de blog pour le moment.</p>
+                        <p style="margin-top: 15px; font-size: 14px; color: #999;">
+                            Pour ajouter des articles, utilisez le panneau d'administration.
+                        </p>
                     </div>
                 `;
+                console.warn('⚠️ Hiç blog yazısı bulunamadı. Admin panelinden blog yazısı ekleyin.');
                 return;
             }
             

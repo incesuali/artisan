@@ -387,17 +387,52 @@
             let blogPosts = [];
             try {
                 const response = await fetch('/api/blog-posts');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
+                console.log('API Response (blog-post):', data);
+                
                 if (data.success && data.posts && Array.isArray(data.posts)) {
                     blogPosts = data.posts;
+                    console.log('✅ Blog yazıları Vercel Blob Storage\'dan yüklendi (blog-post):', blogPosts.length);
+                    
+                    // localStorage'a da kaydet (fallback için)
+                    if (blogPosts.length > 0) {
+                        localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+                    }
                 }
             } catch (error) {
-                console.error('Vercel Blob Storage\'dan yükleme hatası, localStorage\'dan yüklenecek:', error);
-                blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+                console.error('⚠️ Vercel Blob Storage\'dan yükleme hatası (blog-post), localStorage\'dan yüklenecek:', error);
             }
             
+            // Vercel Blob Storage'da yoksa veya hata varsa, localStorage'dan yükle
             if (blogPosts.length === 0) {
-                blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+                const localPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+                blogPosts = localPosts;
+                console.log('✅ Blog yazıları localStorage\'dan yüklendi (blog-post):', blogPosts.length);
+                
+                // Eğer localStorage'da varsa ama Vercel Blob Storage'da yoksa, senkronize et
+                if (blogPosts.length > 0) {
+                    console.log('💡 localStorage\'da blog yazıları var, Vercel Blob Storage\'a senkronize ediliyor...');
+                    try {
+                        const syncResponse = await fetch('/api/blog-posts', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ posts: blogPosts }),
+                        });
+                        const syncData = await syncResponse.json();
+                        if (syncData.success) {
+                            console.log('✅ Blog yazıları Vercel Blob Storage\'a senkronize edildi (blog-post)!');
+                        }
+                    } catch (syncError) {
+                        console.error('⚠️ Senkronizasyon hatası (blog-post):', syncError);
+                    }
+                }
             }
             
             const post = blogPosts.find(p => p.id === postId);
