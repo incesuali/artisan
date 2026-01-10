@@ -96,7 +96,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (testGenerationBtn) {
-        testGenerationBtn.addEventListener('click', testBlogGeneration);
+        testGenerationBtn.addEventListener('click', async function() {
+            await testBlogGeneration();
+        });
     }
     
     if (autoBlogEnabled) {
@@ -1611,7 +1613,7 @@ async function generateBlogPostNow(isAuto = false) {
     } else {
         // Fallback: Yerel versiyon (eski kod)
         console.log('⚠️ Global fonksiyon bulunamadı, yerel versiyon kullanılıyor');
-        return generateBlogPostNowLocal(isAuto);
+        return await generateBlogPostNowLocal(isAuto);
     }
 }
 
@@ -1634,28 +1636,103 @@ async function generateBlogPostNowLocal(isAuto = false) {
         date: blogPost.date
     };
     
-    const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    // Önce Vercel Blob Storage'dan mevcut yazıları al
+    let blogPosts = [];
+    try {
+        const getResponse = await fetch(`/api/blog-posts?t=${Date.now()}`, {
+            method: 'GET',
+            cache: 'no-store'
+        });
+        if (getResponse.ok) {
+            const getData = await getResponse.json();
+            if (getData.success && getData.posts && Array.isArray(getData.posts)) {
+                blogPosts = getData.posts;
+                console.log('✅ Mevcut blog yazıları alındı (generateBlogPostNowLocal):', blogPosts.length);
+            }
+        }
+    } catch (error) {
+        console.error('⚠️ Mevcut blog yazıları alınırken hata (generateBlogPostNowLocal), localStorage\'dan yüklenecek:', error);
+        blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    }
+    
+    if (blogPosts.length === 0) {
+        blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    }
+    
     blogPosts.push(blogPostObj);
-    localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
-    localStorage.setItem('lastAutoBlogDate', blogPost.date);
     
-    if (typeof loadBlogPosts === 'function') {
-        loadBlogPosts();
+    // Vercel Blob Storage'a kaydet
+    try {
+        const response = await fetch('/api/blog-posts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ posts: blogPosts }),
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('✅ Blog yazısı Vercel Blob Storage\'a kaydedildi (generateBlogPostNowLocal)!');
+            
+            // localStorage'a da kaydet (fallback için)
+            localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+            localStorage.setItem('lastAutoBlogDate', blogPost.date);
+            
+            // Settings'i de güncelle
+            try {
+                await fetch('/api/auto-blog-settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        enabled: localStorage.getItem('autoBlogEnabled') !== 'false',
+                        lastAutoBlogDate: blogPost.date
+                    }),
+                });
+            } catch (settingsError) {
+                console.error('⚠️ Settings güncelleme hatası:', settingsError);
+            }
+            
+            if (typeof loadBlogPosts === 'function') {
+                await loadBlogPosts();
+            }
+            
+            if (typeof updateAutoBlogStatus === 'function') {
+                const nextDate = new Date();
+                nextDate.setDate(nextDate.getDate() + 10);
+                updateAutoBlogStatus(blogPost.date, nextDate.toISOString());
+            }
+            
+            if (typeof showAutoBlogMessage === 'function') {
+                showAutoBlogMessage(isAuto ? 
+                    `✅ Otomatik blog yazısı oluşturuldu: "${blogPost.title}"` : 
+                    `✅ Blog yazısı başarıyla oluşturuldu: "${blogPost.title}"`, 'success');
+            }
+            
+            return true;
+        } else {
+            throw new Error(data.error || 'Bilinmeyen hata');
+        }
+    } catch (error) {
+        console.error('❌ Vercel Blob Storage kaydetme hatası (generateBlogPostNowLocal):', error);
+        
+        // Fallback: localStorage'a kaydet
+        localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+        localStorage.setItem('lastAutoBlogDate', blogPost.date);
+        
+        if (typeof loadBlogPosts === 'function') {
+            await loadBlogPosts();
+        }
+        
+        if (typeof showAutoBlogMessage === 'function') {
+            showAutoBlogMessage('⚠️ Blog yazısı localStorage\'a kaydedildi (Vercel Blob Storage hatası). Lütfen tekrar deneyin.', 'error');
+        }
+        
+        return false;
     }
-    
-    if (typeof updateAutoBlogStatus === 'function') {
-        const nextDate = new Date();
-        nextDate.setDate(nextDate.getDate() + 10);
-        updateAutoBlogStatus(blogPost.date, nextDate.toISOString());
-    }
-    
-    if (typeof showAutoBlogMessage === 'function') {
-        showAutoBlogMessage(isAuto ? 
-            `✅ Otomatik blog yazısı oluşturuldu: "${blogPost.title}"` : 
-            `✅ Blog yazısı başarıyla oluşturuldu: "${blogPost.title}"`, 'success');
-    }
-    
-    return true;
 }
 
 // Test: Blog oluşturma önizlemesi
