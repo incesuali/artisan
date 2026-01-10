@@ -996,27 +996,38 @@ function generateBlogTitle(words1, words2) {
 
 // Blog içeriği oluştur (14 satırı geçmeyecek)
 function generateBlogContent(words1, words2, words3, words4) {
-    const sentences = [
+    // Paragrafları oluştur
+    const paragraphs = [
         `Besoin d'un expert ${words1[0]} à ${words2[0]} ? Notre ${words3[0]} d'${words3[1]} vous accompagne.`,
         `Que vous soyez à ${words2[1]} ou ${words2[2]}, notre ${words3[2]} en ${words1[1]} est à votre service.`,
         `Pour la ${words1[2]} ou la ${words1[3]}, nous garantissons un travail de ${words3[3]}.`,
         `Notre équipe ${words3[4]} vous propose des solutions adaptées à vos besoins.`,
         `De la pose traditionnelle à la rénovation moderne, nous sublimons vos intérieurs.`,
-        `Avec notre savoir-faire d'${words3[5]} et notre expérience, nous sommes votre partenaire ${words3[6]}.`,
-        `Contactez-nous pour un devis gratuit et personnalisé.`
+        `Avec notre savoir-faire d'${words3[5]} et notre expérience, nous sommes votre partenaire ${words3[6]}.`
     ];
     
-    // Eğer 4. kategoriden kelime varsa ekle
+    // 4. kategoriden kelime varsa ekle (her 4 yazıda bir)
     if (words4.length >= 2) {
-        sentences.push(`Découvrez nos ${words4[0]} et nos ${words4[1]} sur mesure.`);
+        paragraphs.push(`Découvrez nos ${words4[0]} et nos ${words4[1]} sur mesure.`);
     }
     
-    // İçeriği 14 satıra sığdır (paragraflar arası boşluk ile)
-    let content = sentences.slice(0, 7).join('\n\n');
+    // CTA paragrafı
+    paragraphs.push('Contactez-nous pour un devis gratuit et personnalisé.');
     
-    // Eğer 8. cümle varsa ve yer varsa ekle
-    if (sentences.length > 7 && content.split('\n').length < 12) {
-        content += '\n\n' + sentences[7];
+    // 14 satır limitini kontrol et (paragraflar + boş satırlar)
+    // Her paragraf 1 satır + paragraflar arası 1 boş satır = n paragraf için n + (n-1) satır
+    // Maksimum: 14 satır = en fazla 7 paragraf (7 + 6 = 13 satır)
+    const maxParagraphs = 6; // 6 paragraf + 5 boş satır = 11 satır (güvenli limit)
+    const selectedParagraphs = paragraphs.slice(0, maxParagraphs);
+    
+    // Paragrafları birleştir (boş satır ile)
+    const content = selectedParagraphs.join('\n\n');
+    
+    // Satır sayısını kontrol et
+    const lineCount = content.split('\n').length;
+    if (lineCount > 14) {
+        // Eğer 14 satırı geçiyorsa, son paragrafları kaldır
+        return selectedParagraphs.slice(0, 5).join('\n\n');
     }
     
     return content;
