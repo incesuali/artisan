@@ -185,22 +185,43 @@
         
         // İçeriği formatla (paragraflar ve kalın yazılar için)
         function formatContent(content) {
-            // Önce **text** formatını <strong>text</strong>'e çevir
-            let formatted = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            if (!content) return '';
             
             // Paragrafları ayır (\n\n ile)
-            const paragraphs = formatted.split('\n\n').filter(p => p.trim());
+            const paragraphs = content.split('\n\n').filter(p => p.trim());
             
-            // Her paragrafı HTML escape yap ve <p> tagı ile sar
-            formatted = paragraphs.map(para => {
+            // Her paragrafı işle
+            const formatted = paragraphs.map(para => {
                 para = para.trim();
                 if (!para) return '';
-                // HTML escape
+                
+                // Önce HTML escape yap (ama <strong> tagları için özel işlem yapacağız)
+                // Önce **text** formatını geçici bir placeholder ile değiştir
+                const strongMatches = [];
+                para = para.replace(/\*\*(.*?)\*\*/g, (match, text) => {
+                    const placeholder = `__STRONG_${strongMatches.length}__`;
+                    strongMatches.push(text);
+                    return placeholder;
+                });
+                
+                // Şimdi HTML escape yap
                 const div = document.createElement('div');
                 div.textContent = para;
-                const escaped = div.innerHTML;
-                // Satır sonlarını <br> ile değiştir
-                return '<p>' + escaped.replace(/\n/g, '<br>') + '</p>';
+                let escaped = div.innerHTML;
+                
+                // Placeholder'ları <strong> tagları ile değiştir
+                strongMatches.forEach((text, index) => {
+                    const placeholder = `__STRONG_${index}__`;
+                    const div2 = document.createElement('div');
+                    div2.textContent = text;
+                    const escapedText = div2.innerHTML;
+                    escaped = escaped.replace(placeholder, `<strong>${escapedText}</strong>`);
+                });
+                
+                // Satır sonlarını <br> ile değiştir (paragraf içinde)
+                escaped = escaped.replace(/\n/g, '<br>');
+                
+                return '<p>' + escaped + '</p>';
             }).join('');
             
             return formatted || '<p>' + escapeHtml(content) + '</p>';
