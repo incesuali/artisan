@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Artisan Parqueteur Nord</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>⚙️ Admin Paneli</h1>
+            <a href="index.html" class="back-link">← Ana Sayfaya Dön</a>
+        </header>
+
+        <main class="admin-content">
+            <section class="admin-section">
+                <h2>WhatsApp Ayarları</h2>
+                <div class="form-group">
+                    <label for="whatsapp-number">WhatsApp Numarası</label>
+                    <p class="help-text">Ülke kodu ile girin (örn: 905551234567 - + işareti olmadan)</p>
+                    <input 
+                        type="text" 
+                        id="whatsapp-number" 
+                        placeholder="905551234567"
+                        maxlength="15"
+                    >
+                    <div class="current-value">
+                        <strong>Mevcut Numara:</strong> 
+                        <span id="current-number">Yükleniyor...</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="whatsapp-message">Ön Tanımlı Mesaj</label>
+                    <textarea 
+                        id="whatsapp-message" 
+                        rows="3"
+                        placeholder="WhatsApp'ta gönderilecek ön tanımlı mesaj"
+                    ></textarea>
+                </div>
+
+                <button id="save-btn" class="save-btn">💾 Ayarları Kaydet</button>
+                <div id="message" class="message"></div>
+            </section>
+
+            <section class="admin-section">
+                <h2>E-mail Ayarları</h2>
+                <div class="form-group">
+                    <label for="email">E-mail Adresi</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        placeholder="ornek@gmail.com"
+                    >
+                    <div class="current-value">
+                        <strong>Mevcut E-mail:</strong> 
+                        <span id="current-email">Yükleniyor...</span>
+                    </div>
+                </div>
+
+                <button id="save-email-btn" class="save-btn">💾 E-mail Kaydet</button>
+            </section>
+
+            <section class="admin-section">
+                <h2>📸 Galeri Resimleri (Maksimum 20 Resim)</h2>
+                <div id="gallery-message" class="message"></div>
+                <div class="upload-area" id="upload-area">
+                    <input type="file" id="image-input" multiple accept="image/*" style="display: none;">
+                    <div class="upload-content">
+                        <div class="upload-icon">📁</div>
+                        <p class="upload-text">Resimleri buraya sürükleyin veya tıklayarak seçin</p>
+                        <p class="upload-hint">JPG, PNG, WEBP formatları desteklenir</p>
+                        <button class="upload-btn" id="select-images-btn">Resim Seç</button>
+                    </div>
+                </div>
+                
+                <!-- Seçilen Resimler Önizleme -->
+                <div id="selected-preview-section" style="display: none;">
+                    <h3 style="font-size: 16px; margin: 20px 0 15px; color: #2c3e50;">Seçilen Resimler:</h3>
+                    <div class="selected-preview" id="selected-preview">
+                        <!-- Seçilen resimler buraya gelecek -->
+                    </div>
+                    <button id="save-images-btn" class="save-btn" style="margin-top: 15px;">💾 Resimleri Kaydet</button>
+                    <button id="cancel-selection-btn" class="cancel-btn" style="margin-top: 10px;">❌ İptal</button>
+                </div>
+                
+                <div class="images-info">
+                    <span id="images-count">0 / 20 resim yüklendi</span>
+                </div>
+
+                <div class="gallery-preview" id="gallery-preview">
+                    <!-- Yüklenen resimler buraya gelecek -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
+
