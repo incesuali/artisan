@@ -1198,41 +1198,49 @@ function generateBlogTitle(words1, words2) {
     return titleTemplates[Math.floor(Math.random() * titleTemplates.length)];
 }
 
-// Blog içeriği oluştur (14 satırı geçmeyecek)
+// Blog içeriği oluştur (14 satırı geçmeyecek - kesin limit)
 function generateBlogContent(words1, words2, words3, words4) {
-    // Paragrafları oluştur
-    const paragraphs = [
-        `Besoin d'un expert ${words1[0]} à ${words2[0]} ? Notre ${words3[0]} d'${words3[1]} vous accompagne.`,
-        `Que vous soyez à ${words2[1]} ou ${words2[2]}, notre ${words3[2]} en ${words1[1]} est à votre service.`,
-        `Pour la ${words1[2]} ou la ${words1[3]}, nous garantissons un travail de ${words3[3]}.`,
-        `Notre équipe ${words3[4]} vous propose des solutions adaptées à vos besoins.`,
-        `De la pose traditionnelle à la rénovation moderne, nous sublimons vos intérieurs.`,
-        `Avec notre savoir-faire d'${words3[5]} et notre expérience, nous sommes votre partenaire ${words3[6]}.`
-    ];
+    // Paragrafları oluştur (max 6 paragraf = 6 satır + 5 boş satır = 11 satır)
+    const paragraphs = [];
     
-    // 4. kategoriden kelime varsa ekle (her 4 yazıda bir)
+    // Paragraf 1
+    paragraphs.push(`Besoin d'un expert ${words1[0]} à ${words2[0]} ? Notre ${words3[0]} d'${words3[1]} vous accompagne.`);
+    
+    // Paragraf 2
+    paragraphs.push(`Que vous soyez à ${words2[1]} ou ${words2[2]}, notre ${words3[2]} en ${words1[1]} est à votre service.`);
+    
+    // Paragraf 3
+    paragraphs.push(`Pour la ${words1[2]} ou la ${words1[3]}, nous garantissons un travail de ${words3[3]}.`);
+    
+    // Paragraf 4
+    paragraphs.push(`Notre équipe ${words3[4]} vous propose des solutions adaptées à vos besoins.`);
+    
+    // Paragraf 5
+    paragraphs.push(`De la pose traditionnelle à la rénovation moderne, nous sublimons vos intérieurs.`);
+    
+    // Paragraf 6 (4. kategoriden kelime varsa ekle, yoksa standart)
     if (words4.length >= 2) {
         paragraphs.push(`Découvrez nos ${words4[0]} et nos ${words4[1]} sur mesure.`);
+    } else {
+        paragraphs.push(`Avec notre savoir-faire d'${words3[5]} et notre expérience, nous sommes votre partenaire ${words3[6]}.`);
     }
     
-    // CTA paragrafı
+    // CTA paragrafı (7. paragraf - toplamda 7 + 6 boş = 13 satır, 14'ü geçmez)
     paragraphs.push('Contactez-nous pour un devis gratuit et personnalisé.');
     
-    // 14 satır limitini kontrol et (paragraflar + boş satırlar)
-    // Her paragraf 1 satır + paragraflar arası 1 boş satır = n paragraf için n + (n-1) satır
-    // Maksimum: 14 satır = en fazla 7 paragraf (7 + 6 = 13 satır)
-    const maxParagraphs = 6; // 6 paragraf + 5 boş satır = 11 satır (güvenli limit)
-    const selectedParagraphs = paragraphs.slice(0, maxParagraphs);
-    
     // Paragrafları birleştir (boş satır ile)
-    const content = selectedParagraphs.join('\n\n');
+    const content = paragraphs.join('\n\n');
     
-    // Satır sayısını kontrol et
+    // Satır sayısını kontrol et (kesin limit: 14 satır)
     const lineCount = content.split('\n').length;
+    
     if (lineCount > 14) {
-        // Eğer 14 satırı geçiyorsa, son paragrafları kaldır
-        return selectedParagraphs.slice(0, 5).join('\n\n');
+        console.warn('⚠️ UYARI: İçerik 14 satırı geçiyor! Son paragrafları kaldırılıyor...');
+        // Son paragrafı kaldır, CTA'yı koru
+        return paragraphs.slice(0, paragraphs.length - 2).join('\n\n') + '\n\n' + paragraphs[paragraphs.length - 1];
     }
+    
+    console.log('✅ Blog içeriği oluşturuldu:', lineCount, 'satır (limit: 14)');
     
     return content;
 }
