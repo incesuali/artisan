@@ -8,12 +8,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mevcut değerleri yükle
     loadCurrentValues();
     loadGalleryImages();
+    loadBlogPosts();
     
     // Kaydet butonları
     const saveBtn = document.getElementById('save-btn');
     const saveEmailBtn = document.getElementById('save-email-btn');
     const saveImagesBtn = document.getElementById('save-images-btn');
     const cancelSelectionBtn = document.getElementById('cancel-selection-btn');
+    const addBlogBtn = document.getElementById('add-blog-btn');
     
     if (saveBtn) {
         saveBtn.addEventListener('click', saveWhatsAppSettings);
@@ -29,6 +31,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (cancelSelectionBtn) {
         cancelSelectionBtn.addEventListener('click', cancelSelection);
+    }
+    
+    if (addBlogBtn) {
+        addBlogBtn.addEventListener('click', addBlogPost);
     }
     
     // Resim yükleme
@@ -594,5 +600,128 @@ function updateImagesCount() {
 function loadGalleryImages() {
     // Önce sunucudan yükle, yoksa localStorage'dan
     loadGalleryFromServer();
+}
+
+// ========== BLOG YÖNETİMİ ==========
+
+// Blog yazılarını yükle ve göster
+function loadBlogPosts() {
+    const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    const container = document.getElementById('blog-posts-list');
+    
+    if (!container) return;
+    
+    if (blogPosts.length === 0) {
+        container.innerHTML = '<p style="color: #666; font-style: italic;">Henüz blog yazısı eklenmemiş.</p>';
+        return;
+    }
+    
+    // Tarihe göre sırala (en yeni üstte)
+    blogPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    container.innerHTML = blogPosts.map((post, index) => `
+        <div class="blog-post-item" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                <h4 style="margin: 0; color: #2c3e50; font-size: 16px;">${escapeHtml(post.title)}</h4>
+                <button onclick="deleteBlogPost('${post.id}')" class="delete-btn" style="background: #dc3545; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 12px;">🗑️ Sil</button>
+            </div>
+            <p style="color: #666; font-size: 12px; margin: 5px 0;">${formatDate(post.date)}</p>
+            <p style="color: #495057; font-size: 14px; line-height: 1.5; margin: 10px 0 0; max-height: 100px; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(post.content.substring(0, 150))}${post.content.length > 150 ? '...' : ''}</p>
+        </div>
+    `).join('');
+}
+
+// Blog yazısı ekle
+function addBlogPost() {
+    const titleInput = document.getElementById('blog-title');
+    const contentInput = document.getElementById('blog-content');
+    const messageDiv = document.getElementById('blog-message');
+    
+    if (!titleInput || !contentInput) return;
+    
+    const title = titleInput.value.trim();
+    const content = contentInput.value.trim();
+    
+    // Validasyon
+    if (!title) {
+        showBlogMessage('Lütfen blog yazısı başlığı girin!', 'error');
+        return;
+    }
+    
+    if (!content) {
+        showBlogMessage('Lütfen blog yazısı içeriği girin!', 'error');
+        return;
+    }
+    
+    // Blog yazısı oluştur
+    const blogPost = {
+        id: Date.now().toString(),
+        title: title,
+        content: content,
+        date: new Date().toISOString()
+    };
+    
+    // LocalStorage'a kaydet
+    const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    blogPosts.push(blogPost);
+    localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+    
+    // Formu temizle
+    titleInput.value = '';
+    contentInput.value = '';
+    
+    // Listeyi yenile
+    loadBlogPosts();
+    
+    showBlogMessage('✅ Blog yazısı başarıyla eklendi!', 'success');
+}
+
+// Blog yazısı sil
+function deleteBlogPost(id) {
+    if (!confirm('Bu blog yazısını silmek istediğinize emin misiniz?')) return;
+    
+    const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    const filteredPosts = blogPosts.filter(post => post.id !== id);
+    localStorage.setItem('blogPosts', JSON.stringify(filteredPosts));
+    
+    loadBlogPosts();
+    showBlogMessage('✅ Blog yazısı silindi!', 'success');
+}
+
+// Blog mesajı göster
+function showBlogMessage(text, type) {
+    const messageDiv = document.getElementById('blog-message');
+    if (!messageDiv) return;
+    
+    messageDiv.textContent = text;
+    messageDiv.className = `message ${type}`;
+    messageDiv.style.display = 'block';
+    
+    // Başarılı mesajı 3 saniye sonra gizle
+    if (type === 'success') {
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 3000);
+    }
+}
+
+// HTML escape (blog için)
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Tarihi formatla (blog için)
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    };
+    return date.toLocaleDateString('tr-TR', options);
 }
 

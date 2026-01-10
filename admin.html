@@ -96,6 +96,46 @@
                     <!-- Yüklenen resimler buraya gelecek -->
                 </div>
             </section>
+
+            <!-- Blog Yönetimi -->
+            <section class="admin-section">
+                <h2>📝 Blog Yazıları</h2>
+                <div class="info-box" style="background: #e0f7fa; border: 1px solid #00bcd4; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <strong>💡 Bilgi:</strong> Blog yazıları localStorage'da saklanır ve blog.html sayfasında görüntülenir.
+                </div>
+                <div id="blog-message" class="message"></div>
+                
+                <!-- Yeni Blog Yazısı Ekleme Formu -->
+                <div class="form-group">
+                    <label for="blog-title">Blog Yazısı Başlığı</label>
+                    <input 
+                        type="text" 
+                        id="blog-title" 
+                        placeholder="Başlık girin..."
+                        maxlength="200"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="blog-content">Blog Yazısı İçeriği</label>
+                    <textarea 
+                        id="blog-content" 
+                        rows="10"
+                        placeholder="Blog yazısı içeriğini buraya girin...&#10;&#10;Paragraf ayırmak için boş satır bırakın.&#10;Kalın yazı için **metin** formatını kullanın."
+                    ></textarea>
+                    <p class="help-text">Paragraf ayırmak için boş satır bırakın. Kalın yazı için **metin** formatını kullanın.</p>
+                </div>
+                
+                <button id="add-blog-btn" class="save-btn">➕ Yeni Blog Yazısı Ekle</button>
+                
+                <!-- Mevcut Blog Yazıları -->
+                <div id="blog-posts-section" style="margin-top: 30px;">
+                    <h3 style="font-size: 18px; margin-bottom: 15px; color: #2c3e50;">Mevcut Blog Yazıları:</h3>
+                    <div id="blog-posts-list">
+                        <!-- Blog yazıları buraya dinamik olarak eklenecek -->
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 

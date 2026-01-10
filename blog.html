@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - Artisan Parqueteur Nord</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .blog-page-container {
+            min-height: 100vh;
+            background-image: url('/images/Gemini_Generated_Image_aehbrgaehbrgaehb.png');
+            background-size: cover;
+            background-position: center top;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            padding: 20px 15px 40px;
+        }
+        
+        .blog-page-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .blog-page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .back-to-home {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            border: 1px solid #333333;
+            margin-top: 10px;
+        }
+        
+        .back-to-home:hover {
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .blog-posts-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .blog-post {
+            margin-bottom: 24px;
+            background: rgba(0, 0, 0, 0.3) !important;
+            padding: 24px 20px;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            border: 1px solid #333333;
+            transition: all 0.3s ease;
+            animation: slideUp 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .blog-post:nth-child(1) { animation-delay: 0.1s; }
+        .blog-post:nth-child(2) { animation-delay: 0.15s; }
+        .blog-post:nth-child(3) { animation-delay: 0.2s; }
+        .blog-post:nth-child(4) { animation-delay: 0.25s; }
+        .blog-post:nth-child(5) { animation-delay: 0.3s; }
+        
+        .blog-post:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .blog-post-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+        
+        .blog-post-date {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 16px;
+            font-style: italic;
+        }
+        
+        .blog-post-content {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #ffffff;
+        }
+        
+        .blog-post-content p {
+            margin-bottom: 12px;
+        }
+        
+        .blog-post-content p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .blog-post-content strong {
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        .no-blogs {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            border: 1px solid #333333;
+        }
+        
+        .no-blogs-text {
+            font-size: 16px;
+            color: #ffffff;
+        }
+        
+        @media (max-width: 768px) {
+            .blog-page-title {
+                font-size: 24px;
+            }
+            
+            .blog-post-title {
+                font-size: 20px;
+            }
+            
+            .blog-post-content {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="blog-page-container">
+        <div class="blog-page-header">
+            <h1 class="blog-page-title">Blog</h1>
+            <a href="index.html" class="back-to-home">← Retour à l'accueil</a>
+        </div>
+        
+        <div class="blog-posts-container" id="blog-posts-container">
+            <!-- Blog yazıları buraya dinamik olarak eklenecek -->
+        </div>
+    </div>
+
+    <script>
+        // Blog yazılarını yükle ve göster
+        function loadBlogPosts() {
+            const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+            const container = document.getElementById('blog-posts-container');
+            
+            if (blogPosts.length === 0) {
+                container.innerHTML = `
+                    <div class="no-blogs">
+                        <p class="no-blogs-text">Aucun article de blog pour le moment.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Tarihe göre sırala (en yeni üstte)
+            blogPosts.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            container.innerHTML = blogPosts.map(post => `
+                <article class="blog-post">
+                    <h2 class="blog-post-title">${escapeHtml(post.title)}</h2>
+                    <div class="blog-post-date">${formatDate(post.date)}</div>
+                    <div class="blog-post-content">${formatContent(post.content)}</div>
+                </article>
+            `).join('');
+        }
+        
+        // HTML escape
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // İçeriği formatla (paragraflar ve kalın yazılar için)
+        function formatContent(content) {
+            // Önce **text** formatını <strong>text</strong>'e çevir
+            let formatted = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Paragrafları ayır (\n\n ile)
+            const paragraphs = formatted.split('\n\n').filter(p => p.trim());
+            
+            // Her paragrafı HTML escape yap ve <p> tagı ile sar
+            formatted = paragraphs.map(para => {
+                para = para.trim();
+                if (!para) return '';
+                // HTML escape
+                const div = document.createElement('div');
+                div.textContent = para;
+                const escaped = div.innerHTML;
+                // Satır sonlarını <br> ile değiştir
+                return '<p>' + escaped.replace(/\n/g, '<br>') + '</p>';
+            }).join('');
+            
+            return formatted || '<p>' + escapeHtml(content) + '</p>';
+        }
+        
+        // Tarihi formatla
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return date.toLocaleDateString('fr-FR', options);
+        }
+        
+        // Sayfa yüklendiğinde
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBlogPosts();
+        });
+    </script>
+</body>
+</html>
+
