@@ -9,12 +9,7 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .blog-post-page-container {
-            min-height: 100vh;
-            background-image: url('/images/Gemini_Generated_Image_aehbrgaehbrgaehb.png');
-            background-size: cover;
-            background-position: center top;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
+            min-height: calc(100vh - 120px);
             padding: 20px 15px 40px;
         }
         
@@ -235,13 +230,21 @@
     </script>
 </head>
 <body>
-    <div class="blog-post-page-container">
-        <div class="blog-post-page-header">
-            <a href="blog.html" class="back-to-blog">← Retour au blog</a>
-        </div>
+    <div class="container">
+        <!-- Başlık -->
+        <header class="header">
+            <h1>Artisan Parqueteur Nord</h1>
+            <p class="tagline">Le parquet, rien que le parquet.</p>
+        </header>
         
-        <div id="blog-post-content">
-            <div class="loading">Chargement de l'article...</div>
+        <div class="blog-post-page-container">
+            <div class="blog-post-page-header">
+                <a href="blog.html" class="back-to-blog">← Retour au blog</a>
+            </div>
+            
+            <div id="blog-post-content">
+                <div class="loading">Chargement de l'article...</div>
+            </div>
         </div>
     </div>
 

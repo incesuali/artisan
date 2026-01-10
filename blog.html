@@ -8,12 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .blog-page-container {
-            min-height: 100vh;
-            background-image: url('/images/Gemini_Generated_Image_aehbrgaehbrgaehb.png');
-            background-size: cover;
-            background-position: center top;
-            background-attachment: fixed;
-            background-repeat: no-repeat;
+            min-height: calc(100vh - 120px);
             padding: 20px 15px 40px;
         }
         
@@ -23,8 +18,8 @@
         }
         
         .blog-page-title {
-            font-size: 28px;
-            font-weight: 700;
+            font-size: 24px;
+            font-weight: 600;
             color: #ffffff;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -126,14 +121,22 @@
     </style>
 </head>
 <body>
-    <div class="blog-page-container">
-        <div class="blog-page-header">
-            <h1 class="blog-page-title">Blog</h1>
-            <a href="index.html" class="back-to-home">← Retour à l'accueil</a>
-        </div>
+    <div class="container">
+        <!-- Başlık -->
+        <header class="header">
+            <h1>Artisan Parqueteur Nord</h1>
+            <p class="tagline">Le parquet, rien que le parquet.</p>
+        </header>
         
-        <div class="blog-posts-container" id="blog-posts-container">
-            <!-- Blog yazıları buraya dinamik olarak eklenecek -->
+        <div class="blog-page-container">
+            <div class="blog-page-header">
+                <h2 class="blog-page-title">Blog</h2>
+                <a href="index.html" class="back-to-home">← Retour à l'accueil</a>
+            </div>
+            
+            <div class="blog-posts-container" id="blog-posts-container">
+                <!-- Blog yazıları buraya dinamik olarak eklenecek -->
+            </div>
         </div>
     </div>
 
