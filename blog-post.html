@@ -40,7 +40,7 @@
             max-width: 900px;
             margin: 0 auto;
             background: rgba(0, 0, 0, 0.3) !important;
-            padding: 30px 24px;
+            padding: 24px 20px;
             border-radius: 16px;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
             border: 1px solid #333333;
@@ -48,28 +48,29 @@
         }
         
         .blog-post-article h1 {
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 700;
             color: #ffffff;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             line-height: 1.3;
         }
         
         .blog-post-article .post-date {
-            font-size: 14px;
+            font-size: 13px;
             color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             font-style: italic;
         }
         
         .blog-post-article .post-content {
             font-size: 16px;
-            line-height: 1.8;
+            line-height: 1.6;
             color: #ffffff;
         }
         
         .blog-post-article .post-content p {
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+            line-height: 1.5;
         }
         
         .blog-post-article .post-content p:last-child {
@@ -99,10 +100,10 @@
         
         /* Contact Section in Blog Post */
         .blog-contact-section {
-            margin: 30px 0;
+            margin: 24px 0;
             background: rgba(0, 0, 0, 0.3) !important;
-            padding: 24px 20px 20px;
-            border-radius: 16px;
+            padding: 20px 18px 18px;
+            border-radius: 12px;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
             border: 1px solid #333333;
             position: relative;
@@ -195,16 +196,45 @@
         }
         
         @media (max-width: 768px) {
+            .blog-post-article {
+                padding: 20px 16px;
+            }
+            
             .blog-post-article h1 {
-                font-size: 24px;
+                font-size: 22px;
+                margin-bottom: 12px;
+                line-height: 1.2;
+            }
+            
+            .blog-post-article .post-date {
+                font-size: 12px;
+                margin-bottom: 16px;
             }
             
             .blog-post-article .post-content {
-                font-size: 15px;
+                font-size: 14px;
+                line-height: 1.4;
+            }
+            
+            .blog-post-article .post-content p {
+                margin-bottom: 8px;
+                line-height: 1.4;
             }
             
             .blog-contact-section {
-                padding: 20px 16px 16px;
+                padding: 16px 14px 14px;
+                margin: 20px 0;
+            }
+            
+            .blog-contact-text {
+                font-size: 14px;
+                margin-bottom: 14px;
+            }
+            
+            .blog-btn-whatsapp,
+            .blog-btn-message {
+                padding: 14px 24px;
+                font-size: 15px;
             }
         }
     </style>
