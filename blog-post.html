@@ -10,12 +10,12 @@
     <style>
         .blog-post-page-container {
             min-height: calc(100vh - 120px);
-            padding: 20px 15px 40px;
+            padding: 15px 12px 30px;
         }
         
         .blog-post-page-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         
         .back-to-blog {
@@ -28,7 +28,7 @@
             font-size: 14px;
             transition: all 0.3s ease;
             border: 1px solid #333333;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .back-to-blog:hover {
@@ -196,45 +196,70 @@
         }
         
         @media (max-width: 768px) {
+            .blog-post-page-container {
+                padding: 12px 10px 25px;
+            }
+            
+            .blog-post-page-header {
+                margin-bottom: 15px;
+            }
+            
+            .back-to-blog {
+                padding: 6px 12px;
+                font-size: 13px;
+                margin-bottom: 12px;
+            }
+            
             .blog-post-article {
-                padding: 20px 16px;
+                padding: 16px 14px;
+                border-radius: 12px;
             }
             
             .blog-post-article h1 {
-                font-size: 22px;
-                margin-bottom: 12px;
+                font-size: 20px;
+                margin-bottom: 10px;
                 line-height: 1.2;
             }
             
             .blog-post-article .post-date {
-                font-size: 12px;
-                margin-bottom: 16px;
+                font-size: 11px;
+                margin-bottom: 12px;
             }
             
             .blog-post-article .post-content {
                 font-size: 14px;
-                line-height: 1.4;
+                line-height: 1.35;
             }
             
             .blog-post-article .post-content p {
-                margin-bottom: 8px;
-                line-height: 1.4;
+                margin-bottom: 6px;
+                line-height: 1.35;
             }
             
             .blog-contact-section {
-                padding: 16px 14px 14px;
-                margin: 20px 0;
+                padding: 14px 12px 12px;
+                margin: 14px 0;
+                border-radius: 10px;
             }
             
             .blog-contact-text {
-                font-size: 14px;
-                margin-bottom: 14px;
+                font-size: 13px;
+                margin-bottom: 12px;
+                line-height: 1.4;
             }
             
             .blog-btn-whatsapp,
             .blog-btn-message {
-                padding: 14px 24px;
-                font-size: 15px;
+                padding: 12px 20px;
+                font-size: 14px;
+                border-radius: 10px;
+                margin-bottom: 10px;
+            }
+            
+            .blog-btn-whatsapp svg,
+            .blog-btn-message svg {
+                width: 20px;
+                height: 20px;
             }
         }
     </style>
