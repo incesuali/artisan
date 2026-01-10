@@ -136,6 +136,85 @@
                     </div>
                 </div>
             </section>
+
+            <!-- SEO Kelime Yönetimi ve Otomatik Blog Üretimi -->
+            <section class="admin-section">
+                <h2>🤖 SEO Otomatik Blog Yazısı Üretici</h2>
+                <div class="info-box" style="background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <strong>⚙️ Otomatik Sistem:</strong> Sistem her 10 günde bir otomatik SEO blog yazısı oluşturacak. Blog yazıları 14 satırı geçmeyecek.
+                </div>
+                <div id="auto-blog-message" class="message"></div>
+                
+                <!-- Kelime Alanları -->
+                <h3 style="font-size: 16px; margin: 20px 0 15px; color: #2c3e50;">SEO Kelimeleri:</h3>
+                
+                <div class="form-group">
+                    <label for="keywords-1">1. Alan Kelimeleri (4 kelime kullanılacak)</label>
+                    <textarea 
+                        id="keywords-1" 
+                        rows="3"
+                        placeholder="Her satıra bir kelime girin..."
+                    ></textarea>
+                    <p class="help-text">Örnek: parquet massif, parquet contrecollé, pose parquet, rénovation parquet</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="keywords-2">2. Alan Kelimeleri (3 kelime kullanılacak)</label>
+                    <textarea 
+                        id="keywords-2" 
+                        rows="3"
+                        placeholder="Her satıra bir kelime girin..."
+                    ></textarea>
+                    <p class="help-text">Örnek: Lille, Croix, Wasquehal, Lens, Hem</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="keywords-3">3. Alan Kelimeleri (7 kelime kullanılacak)</label>
+                    <textarea 
+                        id="keywords-3" 
+                        rows="4"
+                        placeholder="Her satıra bir kelime girin..."
+                    ></textarea>
+                    <p class="help-text">Örnek: artisan, expert, professionnel, qualité, service, devis, garantie</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="keywords-4">4. Alan Kelimeleri (Her 4 yazıda bir 2 kelime)</label>
+                    <textarea 
+                        id="keywords-4" 
+                        rows="2"
+                        placeholder="Her satıra bir kelime girin..."
+                    ></textarea>
+                    <p class="help-text">Örnek: prix parquet, tarif parquet</p>
+                </div>
+                
+                <button id="save-keywords-btn" class="save-btn">💾 Kelimeleri Kaydet</button>
+                
+                <!-- Otomatik Blog Ayarları -->
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px; color: #2c3e50;">Otomatik Blog Ayarları:</h3>
+                    
+                    <div class="form-group">
+                        <label for="auto-blog-enabled">
+                            <input type="checkbox" id="auto-blog-enabled" style="margin-right: 8px;">
+                            Otomatik blog yazısı üretimini etkinleştir (10 günde bir)
+                        </label>
+                    </div>
+                    
+                    <div id="auto-blog-status" style="margin: 15px 0; padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #dee2e6;">
+                        <strong>Son Blog Üretimi:</strong> <span id="last-blog-date">Henüz üretilmemiş</span><br>
+                        <strong>Sonraki Blog Üretimi:</strong> <span id="next-blog-date">-</span>
+                    </div>
+                    
+                    <button id="generate-blog-now-btn" class="save-btn" style="background: #28a745;">🚀 Şimdi Blog Yazısı Oluştur</button>
+                    <button id="test-generation-btn" class="save-btn" style="background: #17a2b8; margin-top: 10px;">🧪 Test: Önizleme Oluştur</button>
+                    
+                    <div id="test-preview" style="display: none; margin-top: 20px; padding: 15px; background: #e9ecef; border-radius: 8px; border: 1px solid #ced4da;">
+                        <h4 style="margin-bottom: 10px;">Önizleme:</h4>
+                        <div id="test-preview-content"></div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 

@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCurrentValues();
     loadGalleryImages();
     loadBlogPosts();
+    loadKeywords();
+    loadAutoBlogSettings();
+    checkAutoBlogSchedule();
     
     // Kaydet butonları
     const saveBtn = document.getElementById('save-btn');
@@ -16,6 +19,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveImagesBtn = document.getElementById('save-images-btn');
     const cancelSelectionBtn = document.getElementById('cancel-selection-btn');
     const addBlogBtn = document.getElementById('add-blog-btn');
+    const saveKeywordsBtn = document.getElementById('save-keywords-btn');
+    const generateBlogNowBtn = document.getElementById('generate-blog-now-btn');
+    const testGenerationBtn = document.getElementById('test-generation-btn');
+    const autoBlogEnabled = document.getElementById('auto-blog-enabled');
     
     if (saveBtn) {
         saveBtn.addEventListener('click', saveWhatsAppSettings);
@@ -37,8 +44,27 @@ document.addEventListener('DOMContentLoaded', function() {
         addBlogBtn.addEventListener('click', addBlogPost);
     }
     
+    if (saveKeywordsBtn) {
+        saveKeywordsBtn.addEventListener('click', saveKeywords);
+    }
+    
+    if (generateBlogNowBtn) {
+        generateBlogNowBtn.addEventListener('click', generateBlogPostNow);
+    }
+    
+    if (testGenerationBtn) {
+        testGenerationBtn.addEventListener('click', testBlogGeneration);
+    }
+    
+    if (autoBlogEnabled) {
+        autoBlogEnabled.addEventListener('change', saveAutoBlogSettings);
+    }
+    
     // Resim yükleme
     setupImageUpload();
+    
+    // Her gün otomatik blog kontrolü yap
+    setInterval(checkAutoBlogSchedule, 86400000); // 24 saat
 });
 
 // Mevcut değerleri yükle
@@ -843,5 +869,310 @@ function formatDate(dateString) {
         minute: '2-digit'
     };
     return date.toLocaleDateString('tr-TR', options);
+}
+
+// ========== SEO OTOMATIK BLOG YAZISI ÜRETİCİ ==========
+
+// Kelimeleri yükle
+function loadKeywords() {
+    const keywords1 = document.getElementById('keywords-1');
+    const keywords2 = document.getElementById('keywords-2');
+    const keywords3 = document.getElementById('keywords-3');
+    const keywords4 = document.getElementById('keywords-4');
+    
+    if (keywords1) {
+        const stored1 = JSON.parse(localStorage.getItem('seoKeywords1') || '[]');
+        keywords1.value = stored1.join('\n');
+    }
+    
+    if (keywords2) {
+        const stored2 = JSON.parse(localStorage.getItem('seoKeywords2') || '[]');
+        keywords2.value = stored2.join('\n');
+    }
+    
+    if (keywords3) {
+        const stored3 = JSON.parse(localStorage.getItem('seoKeywords3') || '[]');
+        keywords3.value = stored3.join('\n');
+    }
+    
+    if (keywords4) {
+        const stored4 = JSON.parse(localStorage.getItem('seoKeywords4') || '[]');
+        keywords4.value = stored4.join('\n');
+    }
+}
+
+// Kelimeleri kaydet
+function saveKeywords() {
+    const keywords1 = document.getElementById('keywords-1');
+    const keywords2 = document.getElementById('keywords-2');
+    const keywords3 = document.getElementById('keywords-3');
+    const keywords4 = document.getElementById('keywords-4');
+    const messageDiv = document.getElementById('auto-blog-message');
+    
+    if (!keywords1 || !keywords2 || !keywords3 || !keywords4) return;
+    
+    const words1 = keywords1.value.split('\n').map(w => w.trim()).filter(w => w);
+    const words2 = keywords2.value.split('\n').map(w => w.trim()).filter(w => w);
+    const words3 = keywords3.value.split('\n').map(w => w.trim()).filter(w => w);
+    const words4 = keywords4.value.split('\n').map(w => w.trim()).filter(w => w);
+    
+    // Validasyon
+    if (words1.length < 4) {
+        showAutoBlogMessage('1. alandan en az 4 kelime girmelisiniz!', 'error');
+        return;
+    }
+    
+    if (words2.length < 3) {
+        showAutoBlogMessage('2. alandan en az 3 kelime girmelisiniz!', 'error');
+        return;
+    }
+    
+    if (words3.length < 7) {
+        showAutoBlogMessage('3. alandan en az 7 kelime girmelisiniz!', 'error');
+        return;
+    }
+    
+    // LocalStorage'a kaydet
+    localStorage.setItem('seoKeywords1', JSON.stringify(words1));
+    localStorage.setItem('seoKeywords2', JSON.stringify(words2));
+    localStorage.setItem('seoKeywords3', JSON.stringify(words3));
+    localStorage.setItem('seoKeywords4', JSON.stringify(words4));
+    
+    showAutoBlogMessage('✅ Kelimeler başarıyla kaydedildi!', 'success');
+}
+
+// Rastgele seçim fonksiyonu
+function getRandomElements(array, count) {
+    const shuffled = [...array].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+}
+
+// SEO blog yazısı oluştur
+function generateSEOBlogPost() {
+    const words1 = JSON.parse(localStorage.getItem('seoKeywords1') || '[]');
+    const words2 = JSON.parse(localStorage.getItem('seoKeywords2') || '[]');
+    const words3 = JSON.parse(localStorage.getItem('seoKeywords3') || '[]');
+    const words4 = JSON.parse(localStorage.getItem('seoKeywords4') || '[]');
+    
+    if (words1.length < 4 || words2.length < 3 || words3.length < 7) {
+        return null;
+    }
+    
+    // Blog yazısı sayısını kontrol et (her 4'te bir 4. alandan kelime)
+    const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    const useCategory4 = (blogPosts.length + 1) % 4 === 0;
+    
+    // Kelimeleri seç
+    const selected1 = getRandomElements(words1, 4);
+    const selected2 = getRandomElements(words2, 3);
+    const selected3 = getRandomElements(words3, 7);
+    const selected4 = useCategory4 && words4.length >= 2 ? getRandomElements(words4, 2) : [];
+    
+    // Blog yazısı içeriği oluştur (14 satırı geçmeyecek)
+    const content = generateBlogContent(selected1, selected2, selected3, selected4);
+    
+    // Başlık oluştur
+    const title = generateBlogTitle(selected1, selected2);
+    
+    return {
+        title: title,
+        content: content,
+        date: new Date().toISOString()
+    };
+}
+
+// Blog başlığı oluştur
+function generateBlogTitle(words1, words2) {
+    const titleTemplates = [
+        `${words1[0]} : Notre Expertise ${words2[0]}`,
+        `${words1[1]} à ${words2[1]} : Guide Complet`,
+        `${words1[2]} ${words2[2]} : Solutions Professionnelles`,
+        `Expert ${words1[3]} dans le Nord`,
+        `${words1[0]} et ${words1[1]} : Nos Services`
+    ];
+    
+    return titleTemplates[Math.floor(Math.random() * titleTemplates.length)];
+}
+
+// Blog içeriği oluştur (14 satırı geçmeyecek)
+function generateBlogContent(words1, words2, words3, words4) {
+    const sentences = [
+        `Besoin d'un expert ${words1[0]} à ${words2[0]} ? Notre ${words3[0]} d'${words3[1]} vous accompagne.`,
+        `Que vous soyez à ${words2[1]} ou ${words2[2]}, notre ${words3[2]} en ${words1[1]} est à votre service.`,
+        `Pour la ${words1[2]} ou la ${words1[3]}, nous garantissons un travail de ${words3[3]}.`,
+        `Notre équipe ${words3[4]} vous propose des solutions adaptées à vos besoins.`,
+        `De la pose traditionnelle à la rénovation moderne, nous sublimons vos intérieurs.`,
+        `Avec notre savoir-faire d'${words3[5]} et notre expérience, nous sommes votre partenaire ${words3[6]}.`,
+        `Contactez-nous pour un devis gratuit et personnalisé.`
+    ];
+    
+    // Eğer 4. kategoriden kelime varsa ekle
+    if (words4.length >= 2) {
+        sentences.push(`Découvrez nos ${words4[0]} et nos ${words4[1]} sur mesure.`);
+    }
+    
+    // İçeriği 14 satıra sığdır (paragraflar arası boşluk ile)
+    let content = sentences.slice(0, 7).join('\n\n');
+    
+    // Eğer 8. cümle varsa ve yer varsa ekle
+    if (sentences.length > 7 && content.split('\n').length < 12) {
+        content += '\n\n' + sentences[7];
+    }
+    
+    return content;
+}
+
+// Otomatik blog ayarlarını yükle
+function loadAutoBlogSettings() {
+    const enabled = localStorage.getItem('autoBlogEnabled') === 'true';
+    const checkbox = document.getElementById('auto-blog-enabled');
+    
+    if (checkbox) {
+        checkbox.checked = enabled;
+    }
+}
+
+// Otomatik blog ayarlarını kaydet
+function saveAutoBlogSettings() {
+    const checkbox = document.getElementById('auto-blog-enabled');
+    if (checkbox) {
+        localStorage.setItem('autoBlogEnabled', checkbox.checked ? 'true' : 'false');
+        showAutoBlogMessage(checkbox.checked ? '✅ Otomatik blog üretimi etkinleştirildi!' : '⏸️ Otomatik blog üretimi durduruldu.', 'success');
+        checkAutoBlogSchedule();
+    }
+}
+
+// Otomatik blog zamanlamasını kontrol et
+function checkAutoBlogSchedule() {
+    const enabled = localStorage.getItem('autoBlogEnabled') === 'true';
+    if (!enabled) {
+        updateAutoBlogStatus(null, null);
+        return;
+    }
+    
+    const lastDate = localStorage.getItem('lastAutoBlogDate');
+    const now = new Date();
+    
+    if (!lastDate) {
+        // İlk kez - hemen oluştur
+        generateBlogPostNow(true);
+        return;
+    }
+    
+    const last = new Date(lastDate);
+    const diffDays = Math.floor((now - last) / (1000 * 60 * 60 * 24));
+    
+    const statusDiv = document.getElementById('auto-blog-status');
+    const lastDateSpan = document.getElementById('last-blog-date');
+    const nextDateSpan = document.getElementById('next-blog-date');
+    
+    if (lastDateSpan) {
+        lastDateSpan.textContent = lastDate ? formatDate(lastDate) : 'Henüz üretilmemiş';
+    }
+    
+    if (nextDateSpan) {
+        if (lastDate) {
+            const nextDate = new Date(last);
+            nextDate.setDate(nextDate.getDate() + 10);
+            nextDateSpan.textContent = formatDate(nextDate.toISOString());
+            
+            if (diffDays >= 10) {
+                // 10 gün geçti, yeni blog oluştur
+                generateBlogPostNow(true);
+            }
+        } else {
+            nextDateSpan.textContent = '-';
+        }
+    }
+}
+
+// Otomatik blog durumunu güncelle
+function updateAutoBlogStatus(lastDate, nextDate) {
+    const lastDateSpan = document.getElementById('last-blog-date');
+    const nextDateSpan = document.getElementById('next-blog-date');
+    
+    if (lastDateSpan) {
+        lastDateSpan.textContent = lastDate ? formatDate(lastDate) : 'Henüz üretilmemiş';
+    }
+    
+    if (nextDateSpan) {
+        nextDateSpan.textContent = nextDate ? formatDate(nextDate) : '-';
+    }
+}
+
+// Şimdi blog yazısı oluştur
+function generateBlogPostNow(isAuto = false) {
+    const blogPost = generateSEOBlogPost();
+    
+    if (!blogPost) {
+        showAutoBlogMessage('❌ Blog yazısı oluşturulamadı! Önce kelimeleri kaydedin.', 'error');
+        return;
+    }
+    
+    // Blog yazısı ekle
+    const blogPostObj = {
+        id: Date.now().toString(),
+        title: blogPost.title,
+        content: blogPost.content,
+        date: blogPost.date
+    };
+    
+    const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    blogPosts.push(blogPostObj);
+    localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+    
+    // Son oluşturma tarihini kaydet
+    localStorage.setItem('lastAutoBlogDate', blogPost.date);
+    
+    // Blog listesini yenile
+    loadBlogPosts();
+    
+    // Durumu güncelle
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + 10);
+    updateAutoBlogStatus(blogPost.date, nextDate.toISOString());
+    
+    showAutoBlogMessage(isAuto ? 
+        `✅ Otomatik blog yazısı oluşturuldu: "${blogPost.title}"` : 
+        `✅ Blog yazısı başarıyla oluşturuldu: "${blogPost.title}"`, 'success');
+}
+
+// Test: Blog oluşturma önizlemesi
+function testBlogGeneration() {
+    const blogPost = generateSEOBlogPost();
+    const previewDiv = document.getElementById('test-preview');
+    const previewContent = document.getElementById('test-preview-content');
+    
+    if (!blogPost) {
+        showAutoBlogMessage('❌ Test blog yazısı oluşturulamadı! Önce kelimeleri kaydedin.', 'error');
+        return;
+    }
+    
+    if (previewDiv && previewContent) {
+        const lineCount = blogPost.content.split('\n').length;
+        previewContent.innerHTML = `
+            <p><strong>Başlık:</strong> ${escapeHtml(blogPost.title)}</p>
+            <p><strong>Satır Sayısı:</strong> ${lineCount} satır</p>
+            <p><strong>İçerik:</strong></p>
+            <pre style="background: white; padding: 10px; border-radius: 4px; white-space: pre-wrap;">${escapeHtml(blogPost.content)}</pre>
+        `;
+        previewDiv.style.display = 'block';
+    }
+}
+
+// Otomatik blog mesajı göster
+function showAutoBlogMessage(text, type) {
+    const messageDiv = document.getElementById('auto-blog-message');
+    if (!messageDiv) return;
+    
+    messageDiv.textContent = text;
+    messageDiv.className = `message ${type}`;
+    messageDiv.style.display = 'block';
+    
+    if (type === 'success') {
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 4000);
+    }
 }
 
