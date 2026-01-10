@@ -1272,39 +1272,46 @@ function saveAutoBlogSettings() {
 
 // Otomatik blog zamanlamasını kontrol et (global fonksiyon - her sayfada çalışabilir)
 function checkAutoBlogSchedule() {
-    console.log('checkAutoBlogSchedule çağrıldı');
+    console.log('🔍 checkAutoBlogSchedule çağrıldı - Otomatik blog kontrolü başlatıldı');
     
     // Eğer ayar yoksa, varsayılan olarak etkin yap
     let enabledValue = localStorage.getItem('autoBlogEnabled');
     if (enabledValue === null || enabledValue === '') {
         enabledValue = 'true';
         localStorage.setItem('autoBlogEnabled', 'true');
+        console.log('✅ Otomatik blog üretimi varsayılan olarak etkinleştirildi');
     }
     
     const enabled = enabledValue === 'true';
     
     if (!enabled) {
-        console.log('Otomatik blog üretimi devre dışı');
-        updateAutoBlogStatus(null, null);
+        console.log('⏸️ Otomatik blog üretimi devre dışı');
+        if (typeof updateAutoBlogStatus === 'function') {
+            updateAutoBlogStatus(null, null);
+        }
         return;
     }
+    
+    console.log('✅ Otomatik blog üretimi etkin');
     
     const lastDate = localStorage.getItem('lastAutoBlogDate');
     const now = new Date();
     
-    console.log('Son blog tarihi:', lastDate);
+    console.log('📅 Son blog tarihi:', lastDate || 'Henüz üretilmemiş');
     
     if (!lastDate) {
         // İlk kez - hemen oluştur
-        console.log('İlk blog yazısı oluşturuluyor...');
-        generateBlogPostNow(true);
+        console.log('🚀 İlk blog yazısı oluşturuluyor...');
+        setTimeout(() => {
+            generateBlogPostNow(true);
+        }, 1000); // 1 saniye bekle (sayfa yüklenmesi için)
         return;
     }
     
     const last = new Date(lastDate);
     const diffDays = Math.floor((now - last) / (1000 * 60 * 60 * 24));
     
-    console.log('Son blog tarihinden bu yana geçen gün:', diffDays);
+    console.log('📊 Son blog tarihinden bu yana geçen gün:', diffDays);
     
     // UI elementlerini güncelle (sadece admin panelinde varsa)
     const lastDateSpan = document.getElementById('last-blog-date');
@@ -1322,10 +1329,13 @@ function checkAutoBlogSchedule() {
             
             if (diffDays >= 10) {
                 // 10 gün geçti, yeni blog oluştur
-                console.log('10 gün geçti, yeni blog yazısı oluşturuluyor...');
-                generateBlogPostNow(true);
+                console.log('✅ 10 gün geçti! Yeni blog yazısı oluşturuluyor...');
+                setTimeout(() => {
+                    generateBlogPostNow(true);
+                }, 1000); // 1 saniye bekle
             } else {
-                console.log('Henüz 10 gün geçmedi. Kalan gün:', 10 - diffDays);
+                const remainingDays = 10 - diffDays;
+                console.log(`⏳ Henüz 10 gün geçmedi. Kalan gün: ${remainingDays}`);
             }
         } else {
             nextDateSpan.textContent = '-';
@@ -1333,8 +1343,13 @@ function checkAutoBlogSchedule() {
     } else {
         // Admin paneli yoksa, yine de kontrol et ve blog oluştur
         if (diffDays >= 10) {
-            console.log('10 gün geçti, yeni blog yazısı oluşturuluyor (admin paneli yok)...');
-            generateBlogPostNow(true);
+            console.log('✅ 10 gün geçti! Yeni blog yazısı oluşturuluyor (admin paneli yok)...');
+            setTimeout(() => {
+                generateBlogPostNow(true);
+            }, 1000);
+        } else {
+            const remainingDays = 10 - diffDays;
+            console.log(`⏳ Henüz 10 gün geçmedi. Kalan gün: ${remainingDays}`);
         }
     }
 }
