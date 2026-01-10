@@ -54,34 +54,213 @@ document.addEventListener('DOMContentLoaded', function() {
     preloadFirstImages();
     
     // Otomatik blog sistemini kontrol et (her sayfa yüklendiğinde)
-    if (typeof checkAutoBlogSchedule === 'function') {
-        checkAutoBlogSchedule();
-    } else {
-        // Eğer admin.js yüklenmediyse, basit kontrol yap
-        checkAutoBlogSimple();
-    }
+    // 2 saniye bekle (tüm scriptlerin yüklenmesi için)
+    setTimeout(function() {
+        checkAutoBlogScheduleGlobal();
+    }, 2000);
 });
 
-// Basit otomatik blog kontrolü (admin.js olmadan çalışır)
-function checkAutoBlogSimple() {
-    const enabled = localStorage.getItem('autoBlogEnabled') !== 'false'; // Varsayılan: true
-    if (!enabled) return;
+// ========== OTOMATIK BLOG SİSTEMİ (Global - Her Sayfada Çalışır) ==========
+
+// Rastgele seçim fonksiyonu (global)
+function getRandomElementsGlobal(array, count) {
+    const shuffled = [...array].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+}
+
+// SEO blog yazısı oluştur (global)
+function generateSEOBlogPostGlobal() {
+    const words1 = JSON.parse(localStorage.getItem('seoKeywords1') || '[]');
+    const words2 = JSON.parse(localStorage.getItem('seoKeywords2') || '[]');
+    const words3 = JSON.parse(localStorage.getItem('seoKeywords3') || '[]');
+    const words4 = JSON.parse(localStorage.getItem('seoKeywords4') || '[]');
+    
+    if (words1.length < 4 || words2.length < 3 || words3.length < 7) {
+        console.error('❌ Yeterli kelime yok!', {
+            words1: words1.length,
+            words2: words2.length,
+            words3: words3.length
+        });
+        return null;
+    }
+    
+    // Blog yazısı sayısını kontrol et (her 4'te bir 4. alandan kelime)
+    const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    const useCategory4 = (blogPosts.length + 1) % 4 === 0;
+    
+    // Kelimeleri seç
+    const selected1 = getRandomElementsGlobal(words1, 4);
+    const selected2 = getRandomElementsGlobal(words2, Math.min(4, words2.length));
+    const selected3 = getRandomElementsGlobal(words3, 7);
+    const selected4 = useCategory4 && words4.length >= 2 ? getRandomElementsGlobal(words4, 2) : [];
+    
+    // Blog başlığı oluştur
+    const titleTemplates = [
+        `${selected1[0]} : Notre Expertise ${selected2[0]}`,
+        `${selected1[1]} à ${selected2[1]} : Guide Complet`,
+        `${selected1[2]} ${selected2[2]} : Solutions Professionnelles`,
+        `Expert ${selected1[3]} dans le Nord`,
+        `${selected1[0]} et ${selected1[1]} : Nos Services`
+    ];
+    const title = titleTemplates[Math.floor(Math.random() * titleTemplates.length)];
+    
+    // Blog içeriği oluştur (14 satır limiti)
+    const paragraphs = [];
+    paragraphs.push(`Besoin d'un expert ${selected1[0]} à ${selected2[0]} ? Notre ${selected3[0]} d'${selected3[1]} vous accompagne.`);
+    paragraphs.push(`Que vous soyez à ${selected2[1]} ou ${selected2[2]}, notre ${selected3[2]} en ${selected1[1]} est à votre service.`);
+    paragraphs.push(`Pour la ${selected1[2]} ou la ${selected1[3]}, nous garantissons un travail de ${selected3[3]}.`);
+    paragraphs.push(`Notre équipe ${selected3[4]} vous propose des solutions adaptées à vos besoins.`);
+    paragraphs.push(`De la pose traditionnelle à la rénovation moderne, nous sublimons vos intérieurs.`);
+    
+    if (selected4.length >= 2) {
+        paragraphs.push(`Découvrez nos ${selected4[0]} et nos ${selected4[1]} sur mesure.`);
+    } else {
+        paragraphs.push(`Avec notre savoir-faire d'${selected3[5]} et notre expérience, nous sommes votre partenaire ${selected3[6]}.`);
+    }
+    
+    paragraphs.push('Contactez-nous pour un devis gratuit et personnalisé.');
+    
+    const content = paragraphs.join('\n\n');
+    const lineCount = content.split('\n').length;
+    
+    if (lineCount > 14) {
+        console.warn('⚠️ İçerik 14 satırı geçiyor, düzenleniyor...');
+        return {
+            title: title,
+            content: paragraphs.slice(0, 6).join('\n\n') + '\n\n' + paragraphs[paragraphs.length - 1],
+            date: new Date().toISOString()
+        };
+    }
+    
+    return {
+        title: title,
+        content: content,
+        date: new Date().toISOString()
+    };
+}
+
+// Blog yazısı oluştur (global)
+function generateBlogPostNowGlobal(isAuto = false) {
+    console.log('🚀 generateBlogPostNowGlobal çağrıldı, isAuto:', isAuto);
+    
+    const blogPost = generateSEOBlogPostGlobal();
+    
+    if (!blogPost) {
+        console.error('❌ Blog yazısı oluşturulamadı - kelimeler eksik!');
+        return false;
+    }
+    
+    const lineCount = blogPost.content.split('\n').length;
+    console.log('✅ Blog yazısı oluşturuldu:', {
+        title: blogPost.title,
+        contentLines: lineCount,
+        date: blogPost.date
+    });
+    
+    if (lineCount > 14) {
+        console.error('❌ HATA: Blog içeriği 14 satırı geçiyor!');
+        return false;
+    }
+    
+    // Blog yazısı ekle
+    const blogPostObj = {
+        id: Date.now().toString(),
+        title: blogPost.title,
+        content: blogPost.content,
+        date: blogPost.date
+    };
+    
+    const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    blogPosts.push(blogPostObj);
+    localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+    
+    // Son oluşturma tarihini kaydet
+    localStorage.setItem('lastAutoBlogDate', blogPost.date);
+    
+    console.log('✅ Blog yazısı kaydedildi. Toplam blog sayısı:', blogPosts.length);
+    
+    // Admin panelinde varsa listeyi yenile
+    if (typeof loadBlogPosts === 'function') {
+        loadBlogPosts();
+    }
+    
+    // Admin panelinde varsa durumu güncelle
+    if (typeof updateAutoBlogStatus === 'function') {
+        const nextDate = new Date();
+        nextDate.setDate(nextDate.getDate() + 10);
+        updateAutoBlogStatus(blogPost.date, nextDate.toISOString());
+    }
+    
+    return true;
+}
+
+// Otomatik blog zamanlamasını kontrol et (global)
+function checkAutoBlogScheduleGlobal() {
+    console.log('🔍 checkAutoBlogScheduleGlobal çağrıldı - Otomatik blog kontrolü');
+    
+    // Eğer ayar yoksa, varsayılan olarak etkin yap
+    let enabledValue = localStorage.getItem('autoBlogEnabled');
+    if (enabledValue === null || enabledValue === '') {
+        enabledValue = 'true';
+        localStorage.setItem('autoBlogEnabled', 'true');
+        console.log('✅ Otomatik blog üretimi varsayılan olarak etkinleştirildi');
+    }
+    
+    const enabled = enabledValue === 'true';
+    
+    if (!enabled) {
+        console.log('⏸️ Otomatik blog üretimi devre dışı');
+        return;
+    }
     
     const lastDate = localStorage.getItem('lastAutoBlogDate');
+    const now = new Date();
+    
     if (!lastDate) {
-        // İlk kez - blog oluşturulması için admin panelini bekleyelim
+        // İlk kez - hemen oluştur (ancak kelimeler varsa)
+        const words1 = JSON.parse(localStorage.getItem('seoKeywords1') || '[]');
+        if (words1.length >= 4) {
+            console.log('🚀 İlk blog yazısı oluşturuluyor...');
+            generateBlogPostNowGlobal(true);
+        } else {
+            console.log('⏳ İlk blog yazısı için kelimelerin yüklenmesini bekliyor...');
+        }
         return;
     }
     
     const last = new Date(lastDate);
-    const now = new Date();
     const diffDays = Math.floor((now - last) / (1000 * 60 * 60 * 24));
     
-    // 10 gün geçtiyse, admin.js'teki fonksiyon çağrılacak (sayfa yenilendiğinde)
-    if (diffDays >= 10) {
-        console.log('Otomatik blog üretimi gerekiyor (10 gün geçti)');
-        // Admin panelinde generateBlogPostNow çağrılacak
+    console.log('📅 Son blog tarihi:', formatDateGlobal(lastDate));
+    console.log('📊 Son blog tarihinden bu yana geçen gün:', diffDays);
+    
+    // Admin panelinde varsa UI'ı güncelle
+    if (typeof updateAutoBlogStatus === 'function') {
+        const nextDate = new Date(last);
+        nextDate.setDate(nextDate.getDate() + 10);
+        updateAutoBlogStatus(lastDate, nextDate.toISOString());
     }
+    
+    if (diffDays >= 10) {
+        console.log('✅ 10 gün geçti! Yeni blog yazısı oluşturuluyor...');
+        generateBlogPostNowGlobal(true);
+    } else {
+        const remainingDays = 10 - diffDays;
+        console.log(`⏳ Henüz 10 gün geçmedi. Kalan gün: ${remainingDays}`);
+    }
+}
+
+// Tarih formatla (global)
+function formatDateGlobal(dateString) {
+    const date = new Date(dateString);
+    const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    };
+    return date.toLocaleDateString('tr-TR', options);
 }
 
 // İlk 4 resmi preload et
