@@ -205,31 +205,46 @@
             
             let blogPosts = [];
             
-            // Önce Vercel Blob Storage'dan yükle
+            // Önce Vercel Blob Storage'dan yükle (SADECE BLOB STORAGE - localStorage'a güvenme!)
             try {
-                const response = await fetch('/api/blog-posts');
+                console.log('🔍 Vercel Blob Storage\'dan blog yazıları yükleniyor...');
+                const response = await fetch('/api/blog-posts', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    cache: 'no-cache' // Cache'i bypass et
+                });
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
                 }
                 
                 const data = await response.json();
-                console.log('API Response:', data);
+                console.log('📦 API Response:', data);
                 
                 if (data.success && data.posts && Array.isArray(data.posts)) {
                     blogPosts = data.posts;
-                    console.log('✅ Blog yazıları Vercel Blob Storage\'dan yüklendi:', blogPosts.length);
+                    console.log('✅ Blog yazıları Vercel Blob Storage\'dan yüklendi:', blogPosts.length, 'yazı');
                     
-                    // localStorage'a da kaydet (fallback için)
+                    // localStorage'a da kaydet (sadece cache için, güvenilir kaynak Blob Storage)
                     if (blogPosts.length > 0) {
                         localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+                        console.log('💾 Blog yazıları localStorage\'a cache olarak kaydedildi');
                     }
                 } else {
                     console.warn('⚠️ API başarılı ama posts array bulunamadı veya boş:', data);
+                    if (!data.success) {
+                        console.error('❌ API Error:', data.error);
+                    }
                 }
             } catch (error) {
-                console.error('⚠️ Vercel Blob Storage\'dan yükleme hatası:', error);
+                console.error('❌ Vercel Blob Storage\'dan yükleme hatası:', error);
                 console.error('Error details:', error.message);
+                console.error('Error stack:', error.stack);
+                
+                // Hata durumunda localStorage'dan yükle (fallback)
+                console.log('🔄 Fallback: localStorage\'dan yükleniyor...');
             }
             
             // Vercel Blob Storage'da yoksa veya hata varsa, localStorage'dan yükle

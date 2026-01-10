@@ -1404,37 +1404,59 @@ function updateAutoBlogStatus(lastDate, nextDate) {
     }
 }
 
-// Şimdi blog yazısı oluştur (global fonksiyonu kullan)
-function generateBlogPostNow(isAuto = false) {
+// Şimdi blog yazısı oluştur (global fonksiyonu kullan) - ASYNC YAPILDI!
+async function generateBlogPostNow(isAuto = false) {
+    console.log('🔧 generateBlogPostNow çağrıldı, isAuto:', isAuto);
+    
     // Eğer global fonksiyon varsa onu kullan
     if (typeof generateBlogPostNowGlobal === 'function') {
-        const result = generateBlogPostNowGlobal(isAuto);
-        
-        // Admin paneli özel işlemler
-        if (typeof loadBlogPosts === 'function') {
-            loadBlogPosts();
-        }
-        
-        if (typeof updateAutoBlogStatus === 'function') {
-            const lastDate = localStorage.getItem('lastAutoBlogDate');
-            if (lastDate) {
-                const nextDate = new Date(lastDate);
-                nextDate.setDate(nextDate.getDate() + 10);
-                updateAutoBlogStatus(lastDate, nextDate.toISOString());
+        try {
+            const result = await generateBlogPostNowGlobal(isAuto);
+            
+            // Admin paneli özel işlemler
+            if (typeof loadBlogPosts === 'function') {
+                await loadBlogPosts();
             }
-        }
-        
-        if (typeof showAutoBlogMessage === 'function' && result) {
-            const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
-            const lastPost = blogPosts[blogPosts.length - 1];
-            if (lastPost) {
-                showAutoBlogMessage(isAuto ? 
-                    `✅ Otomatik blog yazısı oluşturuldu: "${lastPost.title}"` : 
-                    `✅ Blog yazısı başarıyla oluşturuldu: "${lastPost.title}"`, 'success');
+            
+            if (typeof updateAutoBlogStatus === 'function') {
+                const lastDate = localStorage.getItem('lastAutoBlogDate');
+                if (lastDate) {
+                    const nextDate = new Date(lastDate);
+                    nextDate.setDate(nextDate.getDate() + 10);
+                    updateAutoBlogStatus(lastDate, nextDate.toISOString());
+                }
             }
+            
+            if (typeof showAutoBlogMessage === 'function') {
+                if (result) {
+                    // Vercel Blob Storage'dan en güncel listeyi al
+                    try {
+                        const response = await fetch('/api/blog-posts');
+                        const data = await response.json();
+                        if (data.success && data.posts && data.posts.length > 0) {
+                            const lastPost = data.posts[data.posts.length - 1];
+                            showAutoBlogMessage(isAuto ? 
+                                `✅ Otomatik blog yazısı oluşturuldu: "${lastPost.title}"` : 
+                                `✅ Blog yazısı başarıyla oluşturuldu: "${lastPost.title}"`, 'success');
+                        } else {
+                            showAutoBlogMessage('✅ Blog yazısı oluşturuldu!', 'success');
+                        }
+                    } catch (err) {
+                        showAutoBlogMessage('✅ Blog yazısı oluşturuldu!', 'success');
+                    }
+                } else {
+                    showAutoBlogMessage('❌ Blog yazısı oluşturulamadı!', 'error');
+                }
+            }
+            
+            return result;
+        } catch (error) {
+            console.error('❌ generateBlogPostNowGlobal hatası:', error);
+            if (typeof showAutoBlogMessage === 'function') {
+                showAutoBlogMessage('❌ Blog yazısı oluşturulurken hata oluştu: ' + error.message, 'error');
+            }
+            return false;
         }
-        
-        return result;
     } else {
         // Fallback: Yerel versiyon (eski kod)
         console.log('⚠️ Global fonksiyon bulunamadı, yerel versiyon kullanılıyor');

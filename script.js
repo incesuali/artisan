@@ -139,14 +139,17 @@ function generateSEOBlogPostGlobal() {
     };
 }
 
-// Blog yazısı oluştur (global)
-function generateBlogPostNowGlobal(isAuto = false) {
+// Blog yazısı oluştur (global) - ASYNC YAPILDI!
+async function generateBlogPostNowGlobal(isAuto = false) {
     console.log('🚀 generateBlogPostNowGlobal çağrıldı, isAuto:', isAuto);
     
     const blogPost = generateSEOBlogPostGlobal();
     
     if (!blogPost) {
         console.error('❌ Blog yazısı oluşturulamadı - kelimeler eksik!');
+        if (typeof showAutoBlogMessage === 'function') {
+            showAutoBlogMessage('❌ Blog yazısı oluşturulamadı! Önce kelimeleri kaydedin.', 'error');
+        }
         return false;
     }
     
@@ -159,6 +162,9 @@ function generateBlogPostNowGlobal(isAuto = false) {
     
     if (lineCount > 14) {
         console.error('❌ HATA: Blog içeriği 14 satırı geçiyor!');
+        if (typeof showAutoBlogMessage === 'function') {
+            showAutoBlogMessage('❌ Blog içeriği 14 satırı geçiyor!', 'error');
+        }
         return false;
     }
     
@@ -170,28 +176,66 @@ function generateBlogPostNowGlobal(isAuto = false) {
         date: blogPost.date
     };
     
-    const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+    // Önce localStorage'dan mevcut yazıları al
+    let blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
     blogPosts.push(blogPostObj);
-    localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
     
-    // Son oluşturma tarihini kaydet
-    localStorage.setItem('lastAutoBlogDate', blogPost.date);
-    
-    console.log('✅ Blog yazısı kaydedildi. Toplam blog sayısı:', blogPosts.length);
-    
-    // Admin panelinde varsa listeyi yenile
-    if (typeof loadBlogPosts === 'function') {
-        loadBlogPosts();
+    // ÖNCE VERCEL BLOB STORAGE'A KAYDET (ÖNEMLİ!)
+    try {
+        console.log('💾 Vercel Blob Storage\'a kaydediliyor...');
+        const response = await fetch('/api/blog-posts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ posts: blogPosts }),
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('✅ Blog yazısı Vercel Blob Storage\'a kaydedildi!');
+            
+            // localStorage'a da kaydet (fallback için)
+            localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+            
+            // Son oluşturma tarihini kaydet
+            localStorage.setItem('lastAutoBlogDate', blogPost.date);
+            
+            console.log('✅ Blog yazısı kaydedildi. Toplam blog sayısı:', blogPosts.length);
+            
+            // Admin panelinde varsa listeyi yenile
+            if (typeof loadBlogPosts === 'function') {
+                await loadBlogPosts();
+            }
+            
+            // Admin panelinde varsa durumu güncelle
+            if (typeof updateAutoBlogStatus === 'function') {
+                const nextDate = new Date();
+                nextDate.setDate(nextDate.getDate() + 10);
+                updateAutoBlogStatus(blogPost.date, nextDate.toISOString());
+            }
+            
+            return true;
+        } else {
+            throw new Error(data.error || 'Bilinmeyen hata');
+        }
+    } catch (error) {
+        console.error('❌ Vercel Blob Storage kaydetme hatası:', error);
+        
+        // Hata durumunda localStorage'a kaydet (fallback)
+        localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+        localStorage.setItem('lastAutoBlogDate', blogPost.date);
+        
+        console.warn('⚠️ Blog yazısı localStorage\'a kaydedildi (Vercel Blob Storage hatası)');
+        
+        // Admin panelinde varsa listeyi yenile
+        if (typeof loadBlogPosts === 'function') {
+            await loadBlogPosts();
+        }
+        
+        return false; // Hata oldu ama localStorage'a kaydedildi
     }
-    
-    // Admin panelinde varsa durumu güncelle
-    if (typeof updateAutoBlogStatus === 'function') {
-        const nextDate = new Date();
-        nextDate.setDate(nextDate.getDate() + 10);
-        updateAutoBlogStatus(blogPost.date, nextDate.toISOString());
-    }
-    
-    return true;
 }
 
 // Otomatik blog zamanlamasını kontrol et (global)
@@ -336,11 +380,11 @@ function loadGalleryFromStorage() {
                     // Vercel Blob Storage URL'leri tam URL'dir (https://...), normalize etme
                     // Sadece relative path'leri normalize et
                     if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:')) {
-                        if (url.startsWith('/')) {
-                            url = url.substring(1);
-                        }
-                        if (!url.startsWith('images/')) {
-                            url = 'images/' + url;
+                    if (url.startsWith('/')) {
+                        url = url.substring(1);
+                    }
+                    if (!url.startsWith('images/')) {
+                        url = 'images/' + url;
                         }
                     }
                     return url;
@@ -398,11 +442,11 @@ function updateGalleryGrid(images) {
         let src = imageUrl;
         // Eğer tam URL değilse (http/https/data ile başlamıyorsa) normalize et
         if (!src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('data:')) {
-            if (src.startsWith('/')) {
-                src = src.substring(1);
-            }
-            if (!src.startsWith('images/')) {
-                src = 'images/' + src;
+        if (src.startsWith('/')) {
+            src = src.substring(1);
+        }
+        if (!src.startsWith('images/')) {
+            src = 'images/' + src;
             }
         }
         
@@ -422,7 +466,7 @@ function updateGalleryGrid(images) {
         } else {
             img.loading = 'lazy';
             img.decoding = 'async';
-            img.src = src;
+        img.src = src;
         }
         img.alt = `Réalisation ${index + 1}`;
         img.fetchPriority = index < 4 ? 'high' : 'low';
@@ -515,11 +559,11 @@ function openImageModal() {
                     // Vercel Blob Storage URL'leri tam URL'dir (https://...), normalize etme
                     // Sadece relative path'leri normalize et
                     if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:')) {
-                        if (url.startsWith('/')) {
-                            url = url.substring(1);
-                        }
-                        if (!url.startsWith('images/')) {
-                            url = 'images/' + url;
+                    if (url.startsWith('/')) {
+                        url = url.substring(1);
+                    }
+                    if (!url.startsWith('images/')) {
+                        url = 'images/' + url;
                         }
                     }
                     return url;
