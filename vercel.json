@@ -4,6 +4,12 @@
   "outputDirectory": ".",
   "framework": null,
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap.xml"
+    }
+  ],
   "headers": [
     {
       "source": "/sitemap.xml",
