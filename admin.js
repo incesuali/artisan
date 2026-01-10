@@ -923,7 +923,7 @@ function saveKeywords() {
     }
     
     if (words2.length < 3) {
-        showAutoBlogMessage('2. alandan en az 3 kelime girmelisiniz!', 'error');
+        showAutoBlogMessage('2. alandan en az 3-4 kelime girmelisiniz!', 'error');
         return;
     }
     
@@ -962,9 +962,9 @@ function generateSEOBlogPost() {
     const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
     const useCategory4 = (blogPosts.length + 1) % 4 === 0;
     
-    // Kelimeleri seç
+    // Kelimeleri seç (1. alan: 4 kelime, 2. alan: 3-4 kelime, 3. alan: 7 kelime)
     const selected1 = getRandomElements(words1, 4);
-    const selected2 = getRandomElements(words2, 3);
+    const selected2 = getRandomElements(words2, Math.min(4, words2.length)); // 3-4 kelime
     const selected3 = getRandomElements(words3, 7);
     const selected4 = useCategory4 && words4.length >= 2 ? getRandomElements(words4, 2) : [];
     
