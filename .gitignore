@@ -1,6 +1,8 @@
 node_modules/
-images/*
+images/*.jpg
+images/Ekran_Resmi_*.png
 !images/.gitkeep
+!images/Gemini_Generated_Image_aehbrgaehbrgaehb.png
 .env
 
 
