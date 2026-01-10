@@ -352,9 +352,18 @@ function saveSelectedImages() {
     })
     .then(data => {
         if (data.success) {
-            showMessage('✅ Resimler başarıyla kaydedildi!', 'success');
+            // Yüklenen resimlerin URL'lerini direkt kaydet
+            if (data.images && data.images.length > 0) {
+                const currentImages = getGalleryImages();
+                const newImageUrls = data.images.map(img => img.url || img.filename);
+                const allImages = [...currentImages, ...newImageUrls];
+                saveGalleryImages(allImages);
+                renderGallery();
+                updateImagesCount();
+            }
+            
+            showMessage('✅ Resimler başarıyla kaydedildi! (Vercel Blob Storage)', 'success');
             cancelSelection();
-            loadGalleryFromServer();
         } else {
             throw new Error(data.error || 'Bilinmeyen hata');
         }
@@ -480,8 +489,12 @@ function loadGalleryFromServer() {
             if (data.success && data.images && data.images.length > 0) {
                 const imageUrls = data.images.map(img => {
                     let url = img.url || img.filename;
-                    if (!url.startsWith('images/') && !url.startsWith('/images/')) {
-                        url = 'images/' + url;
+                    // Vercel Blob Storage URL'leri tam URL'dir (https://...), normalize etme
+                    // Sadece relative path'leri normalize et
+                    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:')) {
+                        if (!url.startsWith('images/') && !url.startsWith('/images/')) {
+                            url = 'images/' + url;
+                        }
                     }
                     return url;
                 });

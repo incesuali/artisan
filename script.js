@@ -91,12 +91,15 @@ function loadGalleryFromStorage() {
             if (data.success && data.images && data.images.length > 0) {
                 const imageUrls = data.images.map(img => {
                     let url = img.url || img.filename;
-                    // URL'yi normalize et
-                    if (url.startsWith('/')) {
-                        url = url.substring(1);
-                    }
-                    if (!url.startsWith('images/')) {
-                        url = 'images/' + url;
+                    // Vercel Blob Storage URL'leri tam URL'dir (https://...), normalize etme
+                    // Sadece relative path'leri normalize et
+                    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:')) {
+                        if (url.startsWith('/')) {
+                            url = url.substring(1);
+                        }
+                        if (!url.startsWith('images/')) {
+                            url = 'images/' + url;
+                        }
                     }
                     return url;
                 });
@@ -149,13 +152,16 @@ function updateGalleryGrid(images) {
     
     // Yeni resimleri ekle
     images.forEach((imageUrl, index) => {
-        // URL'yi normalize et
+        // URL'yi normalize et - Vercel Blob Storage URL'leri tam URL'dir (https://...)
         let src = imageUrl;
-        if (src.startsWith('/')) {
-            src = src.substring(1);
-        }
-        if (!src.startsWith('images/')) {
-            src = 'images/' + src;
+        // Eğer tam URL değilse (http/https/data ile başlamıyorsa) normalize et
+        if (!src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('data:')) {
+            if (src.startsWith('/')) {
+                src = src.substring(1);
+            }
+            if (!src.startsWith('images/')) {
+                src = 'images/' + src;
+            }
         }
         
         const galleryItem = document.createElement('div');
@@ -250,12 +256,15 @@ function openImageModal() {
             if (data.success && data.images && data.images.length > 0) {
                 galleryImages = data.images.map(img => {
                     let url = img.url || img.filename;
-                    // URL'yi normalize et
-                    if (url.startsWith('/')) {
-                        url = url.substring(1);
-                    }
-                    if (!url.startsWith('images/')) {
-                        url = 'images/' + url;
+                    // Vercel Blob Storage URL'leri tam URL'dir (https://...), normalize etme
+                    // Sadece relative path'leri normalize et
+                    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:')) {
+                        if (url.startsWith('/')) {
+                            url = url.substring(1);
+                        }
+                        if (!url.startsWith('images/')) {
+                            url = 'images/' + url;
+                        }
                     }
                     return url;
                 });
