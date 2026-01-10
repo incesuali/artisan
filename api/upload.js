@@ -7,66 +7,90 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  try {
-    const busboy = Busboy({ headers: req.headers });
-    const files = [];
-    const uploadPromises = [];
+  return new Promise((resolve, reject) => {
+    try {
+      const busboy = Busboy({ headers: req.headers });
+      const uploadPromises = [];
+      let fileCount = 0;
 
-    // FormData'dan dosyaları oku
-    busboy.on('file', (fieldname, file, info) => {
-      const { filename, encoding, mimeType } = info;
-      
-      if (fieldname === 'images') {
-        const chunks = [];
+      // FormData'dan dosyaları oku
+      busboy.on('file', (fieldname, file, info) => {
+        const { filename, encoding, mimeType } = info;
         
-        file.on('data', (chunk) => {
-          chunks.push(chunk);
-        });
-
-        file.on('end', () => {
-          const buffer = Buffer.concat(chunks);
+        if (fieldname === 'images') {
+          fileCount++;
+          const chunks = [];
           
-          // Vercel Blob Storage'a yükle
-          const promise = put(`images/${filename}`, buffer, {
-            access: 'public',
-            addRandomSuffix: true,
-            contentType: mimeType,
-          }).then(blob => ({
-            filename: blob.pathname.split('/').pop(),
-            url: blob.url,
-          }));
+          file.on('data', (chunk) => {
+            chunks.push(chunk);
+          });
 
-          uploadPromises.push(promise);
-        });
-      }
-    });
+          file.on('end', () => {
+            const buffer = Buffer.concat(chunks);
+            
+            // Vercel Blob Storage'a yükle
+            const promise = put(`images/${filename}`, buffer, {
+              access: 'public',
+              addRandomSuffix: true,
+              contentType: mimeType,
+            }).then(blob => ({
+              filename: blob.pathname.split('/').pop(),
+              url: blob.url,
+            }));
 
-    busboy.on('finish', async () => {
-      try {
-        const uploadedFiles = await Promise.all(uploadPromises);
-        
-        return res.status(200).json({
-          success: true,
-          message: `${uploadedFiles.length} resim başarıyla yüklendi!`,
-          images: uploadedFiles,
-        });
-      } catch (error) {
-        console.error('Upload error:', error);
-        return res.status(500).json({ 
+            uploadPromises.push(promise);
+          });
+        } else {
+          file.resume(); // Diğer fieldları atla
+        }
+      });
+
+      busboy.on('finish', async () => {
+        try {
+          if (uploadPromises.length === 0) {
+            return res.status(400).json({
+              success: false,
+              error: 'Resim seçilmedi!'
+            });
+          }
+
+          const uploadedFiles = await Promise.all(uploadPromises);
+          
+          res.status(200).json({
+            success: true,
+            message: `${uploadedFiles.length} resim başarıyla yüklendi!`,
+            images: uploadedFiles,
+          });
+          resolve();
+        } catch (error) {
+          console.error('Upload error:', error);
+          res.status(500).json({ 
+            success: false, 
+            error: error.message || 'Resim yüklenirken bir hata oluştu!' 
+          });
+          resolve();
+        }
+      });
+
+      busboy.on('error', (error) => {
+        console.error('Busboy error:', error);
+        res.status(500).json({ 
           success: false, 
-          error: error.message || 'Resim yüklenirken bir hata oluştu!' 
+          error: error.message || 'Form parse hatası!' 
         });
-      }
-    });
+        resolve();
+      });
 
-    req.pipe(busboy);
+      req.pipe(busboy);
 
-  } catch (error) {
-    console.error('Upload error:', error);
-    return res.status(500).json({ 
-      success: false, 
-      error: error.message || 'Resim yüklenirken bir hata oluştu!' 
-    });
-  }
+    } catch (error) {
+      console.error('Upload error:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: error.message || 'Resim yüklenirken bir hata oluştu!' 
+      });
+      resolve();
+    }
+  });
 };
 
