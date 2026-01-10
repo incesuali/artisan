@@ -59,6 +59,9 @@ module.exports = async function handler(req, res) {
 
           const uploadedFiles = await Promise.all(uploadPromises);
           
+          // Cache headers ekle
+          res.setHeader('Cache-Control', 'no-cache');
+          
           res.status(200).json({
             success: true,
             message: `${uploadedFiles.length} resim başarıyla yüklendi!`,

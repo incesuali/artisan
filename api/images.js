@@ -7,7 +7,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // Vercel Blob Storage'dan tüm resimleri listele
+    // Vercel Blob Storage'dan tüm resimleri listele (CDG1 - Paris region'ında)
     const { blobs } = await list({
       prefix: 'images/',
     });
@@ -24,6 +24,9 @@ module.exports = async function handler(req, res) {
         pathname: blob.pathname,
       }));
 
+    // Cache headers ekle - hızlı yükleme için
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    
     return res.status(200).json({
       success: true,
       images: images,

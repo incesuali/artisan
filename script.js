@@ -47,9 +47,42 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fotoğrafların yüklenmesini kontrol et
     checkImages();
     
-    // Galeri resimlerini yükle
+    // Galeri resimlerini yükle (cache ile hızlı yükleme)
     loadGalleryFromStorage();
+    
+    // İlk 4 resmi preload et (hızlı görüntüleme için)
+    preloadFirstImages();
 });
+
+// İlk 4 resmi preload et
+function preloadFirstImages() {
+    setTimeout(() => {
+        fetch('/api/images', { cache: 'force-cache' })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                return null;
+            })
+            .then(data => {
+                if (data && data.success && data.images && data.images.length > 0) {
+                    // İlk 4 resmi preload et
+                    const firstFour = data.images.slice(0, 4);
+                    firstFour.forEach(img => {
+                        const link = document.createElement('link');
+                        link.rel = 'preload';
+                        link.as = 'image';
+                        link.href = img.url || img.filename;
+                        link.fetchPriority = 'high';
+                        document.head.appendChild(link);
+                    });
+                }
+            })
+            .catch(error => {
+                console.log('Preload hatası:', error);
+            });
+    }, 100);
+}
 
 // Fotoğrafların yüklenip yüklenmediğini kontrol et
 function checkImages() {
@@ -168,8 +201,22 @@ function updateGalleryGrid(images) {
         galleryItem.className = 'gallery-item';
         
         const img = document.createElement('img');
-        img.src = src;
+        // İlk 4 resmi hemen yükle, diğerlerini lazy loading ile
+        if (index < 4) {
+            img.src = src;
+            // Preload için link ekle
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.as = 'image';
+            link.href = src;
+            document.head.appendChild(link);
+        } else {
+            img.loading = 'lazy';
+            img.decoding = 'async';
+            img.src = src;
+        }
         img.alt = `Réalisation ${index + 1}`;
+        img.fetchPriority = index < 4 ? 'high' : 'low';
         img.onerror = function() {
             console.error('Galeri resmi yüklenemedi:', src);
             this.style.display = 'none';
@@ -434,8 +481,24 @@ function showImage(index) {
     modalImage.style.opacity = '0';
     modalImage.src = ''; // Önceki resmi temizle
     
-    // Yeni resmi yükle
+    // Önceki ve sonraki resimleri preload et (hızlı yükleme için)
+    const nextIndex = (index + 1) % galleryImages.length;
+    const prevIndex = (index - 1 + galleryImages.length) % galleryImages.length;
+    
+    if (galleryImages[nextIndex]) {
+        const nextImg = new Image();
+        nextImg.src = galleryImages[nextIndex];
+    }
+    
+    if (galleryImages[prevIndex]) {
+        const prevImg = new Image();
+        prevImg.src = galleryImages[prevIndex];
+    }
+    
+    // Yeni resmi yükle - hızlı yükleme için fetchPriority ve decoding kullan
     const img = new Image();
+    img.fetchPriority = 'high';
+    img.decoding = 'async';
     img.onload = function() {
         console.log('✅ Resim başarıyla yüklendi:', imageUrl);
         modalImage.src = imageUrl;
