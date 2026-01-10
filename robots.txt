@@ -1,0 +1,19 @@
+# Robots.txt for Artisan Parqueteur Nord
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+
+# Disallow admin panel
+Disallow: /admin.html
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://artisanparquateur.vercel.app/sitemap.xml
+
+# Crawl-delay (optional, for aggressive crawlers)
+User-agent: *
+Crawl-delay: 1
+

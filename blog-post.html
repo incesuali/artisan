@@ -3,9 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags (Dynamic) -->
     <title id="page-title">Blog Post - Artisan Parqueteur Nord</title>
+    <meta name="title" id="meta-title" content="Article de blog sur le parquet - Artisan Parqueteur Nord">
     <meta name="description" id="page-description" content="Article de blog sur le parquet - Artisan Parqueteur Nord">
+    <meta name="keywords" id="meta-keywords" content="parquet, artisan parquet, pose parquet, rénovation parquet, parquet nord, Lille, Roubaix, Tourcoing">
+    <meta name="author" content="Artisan Parqueteur Nord">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="language" content="French">
     <link rel="canonical" id="canonical-url" href="">
+    
+    <!-- Open Graph / Facebook (Dynamic) -->
+    <meta property="og:type" content="article">
+    <meta property="og:url" id="og-url" content="">
+    <meta property="og:title" id="og-title" content="Article de blog sur le parquet - Artisan Parqueteur Nord">
+    <meta property="og:description" id="og-description" content="Article de blog sur le parquet - Artisan Parqueteur Nord">
+    <meta property="og:image" content="https://artisanparquateur.vercel.app/images/Gemini_Generated_Image_aehbrgaehbrgaehb.png">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:site_name" content="Artisan Parqueteur Nord">
+    <meta property="article:author" content="Artisan Parqueteur Nord">
+    <meta property="article:publisher" content="https://artisanparquateur.vercel.app">
+    
+    <!-- Twitter (Dynamic) -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" id="twitter-url" content="">
+    <meta property="twitter:title" id="twitter-title" content="Article de blog sur le parquet - Artisan Parqueteur Nord">
+    <meta property="twitter:description" id="twitter-description" content="Article de blog sur le parquet - Artisan Parqueteur Nord">
+    <meta property="twitter:image" content="https://artisanparquateur.vercel.app/images/Gemini_Generated_Image_aehbrgaehbrgaehb.png">
+    
+    <!-- Hreflang -->
+    <link rel="alternate" hreflang="fr-FR" id="hreflang-fr" href="">
+    <link rel="alternate" hreflang="x-default" id="hreflang-default" href="">
+    
+    <!-- Structured Data - BlogPosting (Dynamic, will be updated by JavaScript) -->
+    <script type="application/ld+json" id="blog-schema">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": "Article de blog sur le parquet",
+      "description": "Article de blog sur le parquet - Artisan Parqueteur Nord",
+      "author": {
+        "@type": "Organization",
+        "name": "Artisan Parqueteur Nord",
+        "url": "https://artisanparquateur.vercel.app"
+      },
+      "publisher": {
+        "@type": "LocalBusiness",
+        "name": "Artisan Parqueteur Nord",
+        "url": "https://artisanparquateur.vercel.app"
+      },
+      "datePublished": "",
+      "dateModified": "",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": ""
+      },
+      "inLanguage": "fr-FR",
+      "image": "https://artisanparquateur.vercel.app/images/Gemini_Generated_Image_aehbrgaehbrgaehb.png"
+    }
+    </script>
+    
     <link rel="stylesheet" href="style.css">
     <style>
         .blog-post-page-container {
@@ -325,8 +383,23 @@
                 return;
             }
             
-            // LocalStorage'dan blog yazılarını al
-            const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+            // Önce Vercel Blob Storage'dan yükle, yoksa localStorage'dan
+            let blogPosts = [];
+            try {
+                const response = await fetch('/api/blog-posts');
+                const data = await response.json();
+                if (data.success && data.posts && Array.isArray(data.posts)) {
+                    blogPosts = data.posts;
+                }
+            } catch (error) {
+                console.error('Vercel Blob Storage\'dan yükleme hatası, localStorage\'dan yüklenecek:', error);
+                blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+            }
+            
+            if (blogPosts.length === 0) {
+                blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+            }
+            
             const post = blogPosts.find(p => p.id === postId);
             
             if (!post) {
@@ -339,31 +412,103 @@
                 return;
             }
             
-            // SEO için meta tagları güncelle
-            document.title = `${escapeHtml(post.title)} - Artisan Parqueteur Nord`;
-            const metaDescription = document.getElementById('page-description');
-            const excerpt = post.content.substring(0, 160).trim() + (post.content.length > 160 ? '...' : '');
-            if (metaDescription) {
-                metaDescription.content = escapeHtml(excerpt);
-            }
-            
-            // Canonical URL güncelle
+            // Slug oluştur
             const slug = post.title.toLowerCase()
                 .replace(/[^a-z0-9]+/g, '-')
                 .replace(/^-+|-+$/g, '');
-            const canonicalUrl = document.getElementById('canonical-url');
-            if (canonicalUrl) {
-                canonicalUrl.href = window.location.origin + window.location.pathname + `?id=${post.id}&slug=${encodeURIComponent(slug)}`;
+            
+            // Canonical URL
+            const baseUrl = 'https://artisanparquateur.vercel.app';
+            const postUrl = `${baseUrl}/blog-post.html?id=${post.id}&slug=${encodeURIComponent(slug)}`;
+            
+            // SEO için meta tagları güncelle
+            const pageTitle = `${escapeHtml(post.title)} - Artisan Parqueteur Nord | Blog Parquet`;
+            document.title = pageTitle;
+            
+            const excerpt = post.content.substring(0, 160).replace(/\n/g, ' ').trim() + (post.content.length > 160 ? '...' : '');
+            const cleanExcerpt = escapeHtml(excerpt);
+            
+            // Meta description
+            const metaDescription = document.getElementById('page-description');
+            if (metaDescription) metaDescription.content = cleanExcerpt;
+            
+            // Meta title
+            const metaTitle = document.getElementById('meta-title');
+            if (metaTitle) metaTitle.content = pageTitle;
+            
+            // Meta keywords
+            const metaKeywords = document.getElementById('meta-keywords');
+            if (metaKeywords) {
+                const keywords = ['parquet', 'artisan parquet', 'pose parquet', 'rénovation parquet', 'parquet nord', 'Lille', 'Roubaix', 'Tourcoing', 'Lens'];
+                metaKeywords.content = keywords.join(', ');
             }
             
-            // Structured Data güncelle
-            const structuredData = JSON.parse(document.getElementById('structured-data').textContent);
-            structuredData.headline = post.title;
-            structuredData.datePublished = post.date;
-            structuredData.dateModified = post.date;
-            structuredData.description = excerpt;
-            structuredData.url = window.location.href;
-            document.getElementById('structured-data').textContent = JSON.stringify(structuredData);
+            // Canonical URL
+            const canonicalUrl = document.getElementById('canonical-url');
+            if (canonicalUrl) canonicalUrl.href = postUrl;
+            
+            // Open Graph tags
+            const ogUrl = document.getElementById('og-url');
+            if (ogUrl) ogUrl.content = postUrl;
+            
+            const ogTitle = document.getElementById('og-title');
+            if (ogTitle) ogTitle.content = pageTitle;
+            
+            const ogDescription = document.getElementById('og-description');
+            if (ogDescription) ogDescription.content = cleanExcerpt;
+            
+            // Twitter tags
+            const twitterUrl = document.getElementById('twitter-url');
+            if (twitterUrl) twitterUrl.content = postUrl;
+            
+            const twitterTitle = document.getElementById('twitter-title');
+            if (twitterTitle) twitterTitle.content = pageTitle;
+            
+            const twitterDescription = document.getElementById('twitter-description');
+            if (twitterDescription) twitterDescription.content = cleanExcerpt;
+            
+            // Hreflang
+            const hreflangFr = document.getElementById('hreflang-fr');
+            if (hreflangFr) hreflangFr.href = postUrl;
+            
+            const hreflangDefault = document.getElementById('hreflang-default');
+            if (hreflangDefault) hreflangDefault.href = postUrl;
+            
+            // Structured Data (JSON-LD) güncelle
+            const blogSchema = document.getElementById('blog-schema');
+            if (blogSchema) {
+                const structuredData = {
+                    "@context": "https://schema.org",
+                    "@type": "BlogPosting",
+                    "headline": escapeHtml(post.title),
+                    "description": cleanExcerpt,
+                    "author": {
+                        "@type": "Organization",
+                        "name": "Artisan Parqueteur Nord",
+                        "url": "https://artisanparquateur.vercel.app"
+                    },
+                    "publisher": {
+                        "@type": "LocalBusiness",
+                        "name": "Artisan Parqueteur Nord",
+                        "url": "https://artisanparquateur.vercel.app",
+                        "logo": {
+                            "@type": "ImageObject",
+                            "url": "https://artisanparquateur.vercel.app/images/Gemini_Generated_Image_aehbrgaehbrgaehb.png"
+                        }
+                    },
+                    "datePublished": post.date,
+                    "dateModified": post.date,
+                    "mainEntityOfPage": {
+                        "@type": "WebPage",
+                        "@id": postUrl
+                    },
+                    "inLanguage": "fr-FR",
+                    "image": "https://artisanparquateur.vercel.app/images/Gemini_Generated_Image_aehbrgaehbrgaehb.png",
+                    "articleSection": "Parquet",
+                    "keywords": "parquet, artisan parquet, pose parquet, rénovation parquet, parquet nord"
+                };
+                blogSchema.textContent = JSON.stringify(structuredData, null, 2);
+            }
             
             // İçeriği göster
             container.innerHTML = `
@@ -488,7 +633,18 @@
         
         // Sayfa yüklendiğinde
         document.addEventListener('DOMContentLoaded', function() {
-            loadBlogPost();
+            loadBlogPost().catch(err => {
+                console.error('Blog post yüklenirken hata:', err);
+                const container = document.getElementById('blog-post-content');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="error">
+                            <p>Erreur lors du chargement de l'article.</p>
+                            <a href="blog.html" style="color: #74b9ff; text-decoration: underline;">Retour au blog</a>
+                        </div>
+                    `;
+                }
+            });
         });
     </script>
 </body>

@@ -3,8 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blog - Artisan Parqueteur Nord</title>
-    <meta name="description" content="Découvrez nos articles de blog sur le parquet, la pose, la rénovation et l'entretien dans le Nord de la France.">
+    
+    <!-- Primary Meta Tags -->
+    <title>Blog Parquet - Articles et Conseils | Artisan Parqueteur Nord</title>
+    <meta name="title" content="Blog Parquet - Articles et Conseils | Artisan Parqueteur Nord">
+    <meta name="description" content="Découvrez nos articles de blog sur le parquet : pose, rénovation, entretien, types de parquet (massif, contrecollé, stratifié) dans le Nord de la France. Conseils d'expert.">
+    <meta name="keywords" content="blog parquet, conseil parquet, pose parquet guide, rénovation parquet conseil, parquet massif, parquet contrecollé, parquet stratifié, entretien parquet, artisan parquet nord">
+    <meta name="author" content="Artisan Parqueteur Nord">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="language" content="French">
+    <link rel="canonical" href="https://artisanparquateur.vercel.app/blog.html">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://artisanparquateur.vercel.app/blog.html">
+    <meta property="og:title" content="Blog Parquet - Articles et Conseils | Artisan Parqueteur Nord">
+    <meta property="og:description" content="Articles et conseils d'expert sur le parquet : pose, rénovation, entretien dans le Nord de la France.">
+    <meta property="og:image" content="https://artisanparquateur.vercel.app/images/Gemini_Generated_Image_aehbrgaehbrgaehb.png">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:site_name" content="Artisan Parqueteur Nord">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://artisanparquateur.vercel.app/blog.html">
+    <meta property="twitter:title" content="Blog Parquet - Articles et Conseils | Artisan Parqueteur Nord">
+    <meta property="twitter:description" content="Articles et conseils d'expert sur le parquet dans le Nord de la France.">
+    <meta property="twitter:image" content="https://artisanparquateur.vercel.app/images/Gemini_Generated_Image_aehbrgaehbrgaehb.png">
+    
+    <!-- Hreflang -->
+    <link rel="alternate" hreflang="fr-FR" href="https://artisanparquateur.vercel.app/blog.html">
+    <link rel="alternate" hreflang="x-default" href="https://artisanparquateur.vercel.app/blog.html">
+    
+    <!-- Structured Data - Blog -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "name": "Blog Artisan Parqueteur Nord",
+      "description": "Articles et conseils d'expert sur le parquet : pose, rénovation, entretien",
+      "url": "https://artisanparquateur.vercel.app/blog.html",
+      "publisher": {
+        "@type": "LocalBusiness",
+        "name": "Artisan Parqueteur Nord",
+        "url": "https://artisanparquateur.vercel.app"
+      },
+      "inLanguage": "fr-FR"
+    }
+    </script>
+    
     <link rel="stylesheet" href="style.css">
     <style>
         .blog-page-container {
@@ -153,10 +199,33 @@
     </div>
 
     <script>
-        // Blog yazılarını yükle ve göster
-        function loadBlogPosts() {
-            const blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+        // Blog yazılarını yükle ve göster (Vercel Blob Storage'dan veya localStorage'dan)
+        async function loadBlogPosts() {
             const container = document.getElementById('blog-posts-container');
+            
+            let blogPosts = [];
+            
+            // Önce Vercel Blob Storage'dan yükle
+            try {
+                const response = await fetch('/api/blog-posts');
+                const data = await response.json();
+                
+                if (data.success && data.posts && Array.isArray(data.posts)) {
+                    blogPosts = data.posts;
+                    console.log('✅ Blog yazıları Vercel Blob Storage\'dan yüklendi:', blogPosts.length);
+                    
+                    // localStorage'a da kaydet (fallback için)
+                    localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
+                }
+            } catch (error) {
+                console.error('⚠️ Vercel Blob Storage\'dan yükleme hatası (localStorage\'dan yüklenecek):', error);
+            }
+            
+            // Vercel Blob Storage'da yoksa veya hata varsa, localStorage'dan yükle
+            if (blogPosts.length === 0) {
+                blogPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+                console.log('✅ Blog yazıları localStorage\'dan yüklendi:', blogPosts.length);
+            }
             
             if (blogPosts.length === 0) {
                 container.innerHTML = `
@@ -176,11 +245,15 @@
                     .replace(/[^a-z0-9]+/g, '-')
                     .replace(/^-+|-+$/g, '');
                 
+                const postUrl = `blog-post.html?id=${post.id}&slug=${encodeURIComponent(slug)}`;
+                
                 return `
-                    <article class="blog-post-preview">
-                        <h2 class="blog-post-title">
-                            <a href="blog-post.html?id=${post.id}&slug=${encodeURIComponent(slug)}" class="blog-post-link">${escapeHtml(post.title)}</a>
+                    <article class="blog-post-preview" itemscope itemtype="https://schema.org/BlogPosting">
+                        <h2 class="blog-post-title" itemprop="headline">
+                            <a href="${postUrl}" class="blog-post-link" itemprop="url">${escapeHtml(post.title)}</a>
                         </h2>
+                        <meta itemprop="datePublished" content="${post.date}">
+                        <meta itemprop="author" content="Artisan Parqueteur Nord">
                     </article>
                 `;
             }).join('');
@@ -208,7 +281,17 @@
         
         // Sayfa yüklendiğinde
         document.addEventListener('DOMContentLoaded', function() {
-            loadBlogPosts();
+            loadBlogPosts().catch(err => {
+                console.error('Blog yazıları yüklenirken hata:', err);
+                const container = document.getElementById('blog-posts-container');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="no-blogs">
+                            <p class="no-blogs-text">Erreur lors du chargement des articles.</p>
+                        </div>
+                    `;
+                }
+            });
         });
     </script>
 </body>
