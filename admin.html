@@ -64,6 +64,10 @@
 
             <section class="admin-section">
                 <h2>📸 Galeri Resimleri (Maksimum 20 Resim)</h2>
+                <div class="info-box" style="background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <strong>⚠️ Önemli:</strong> Vercel'de backend olmadığı için resimler sadece localStorage'a kaydedilecek. 
+                    Kalıcı olması için resimleri manuel olarak <code>images/</code> klasörüne ekleyip git'e push etmeniz gerekiyor.
+                </div>
                 <div id="gallery-message" class="message"></div>
                 <div class="upload-area" id="upload-area">
                     <input type="file" id="image-input" multiple accept="image/*" style="display: none;">

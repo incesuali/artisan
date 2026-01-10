@@ -369,6 +369,7 @@ function saveSelectedImages() {
         
         // Backend yoksa, localStorage'a kaydet (base64)
         console.log('Backend yok, localStorage\'a kaydediliyor...');
+        showMessage('⚠️ Backend bulunamadı. Resimler localStorage\'a kaydedilecek (sadece bu tarayıcıda görünür).', 'error');
         saveToLocalStorage();
     });
 }
@@ -377,42 +378,80 @@ function saveSelectedImages() {
 function saveToLocalStorage() {
     const saveBtn = document.getElementById('save-images-btn');
     const maxImages = 20;
+    
+    if (selectedFiles.length === 0) {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Resimleri Kaydet';
+        }
+        return;
+    }
+    
     const currentImages = getGalleryImages();
     const remainingSlots = maxImages - currentImages.length;
     
-    if (selectedFiles.length > remainingSlots) {
-        showMessage(`Maksimum ${maxImages} resim olabilir! Sadece ${remainingSlots} resim kaydedilecek.`, 'error');
+    if (remainingSlots <= 0) {
+        showMessage(`Maksimum ${maxImages} resim olabilir! Önce bazı resimleri silin.`, 'error');
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Resimleri Kaydet';
+        }
+        return;
     }
     
     const filesToSave = selectedFiles.slice(0, remainingSlots);
-    const newImages = [];
     
+    if (filesToSave.length < selectedFiles.length) {
+        showMessage(`Maksimum ${maxImages} resim olabilir! Sadece ${remainingSlots} resim kaydedilecek.`, 'error');
+    }
+    
+    const newImages = [];
     let processed = 0;
+    let hasError = false;
+    
+    if (filesToSave.length === 0) {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Resimleri Kaydet';
+        }
+        return;
+    }
+    
     filesToSave.forEach((file, index) => {
         const reader = new FileReader();
         reader.onload = function(e) {
-            newImages.push(e.target.result); // base64
-            processed++;
-            
-            if (processed === filesToSave.length) {
-                // Tüm resimleri ekle
-                const allImages = [...currentImages, ...newImages];
-                saveGalleryImages(allImages);
-                renderGallery();
-                updateImagesCount();
+            try {
+                newImages.push(e.target.result); // base64
+                processed++;
                 
-                showMessage('✅ Resimler başarıyla kaydedildi! (LocalStorage)', 'success');
-                cancelSelection();
-                
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.textContent = '💾 Resimleri Kaydet';
+                if (processed === filesToSave.length && !hasError) {
+                    // Tüm resimleri ekle
+                    const allImages = [...currentImages, ...newImages];
+                    saveGalleryImages(allImages);
+                    renderGallery();
+                    updateImagesCount();
+                    
+                    showMessage(`✅ ${newImages.length} resim başarıyla kaydedildi! (LocalStorage - sadece bu tarayıcıda görünür)`, 'success');
+                    cancelSelection();
+                }
+            } catch (error) {
+                console.error('Kaydetme hatası:', error);
+                hasError = true;
+            } finally {
+                if (processed === filesToSave.length) {
+                    if (saveBtn) {
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = '💾 Resimleri Kaydet';
+                    }
                 }
             }
         };
-        reader.onerror = function() {
+        reader.onerror = function(error) {
+            console.error('Resim okuma hatası:', error);
+            hasError = true;
             processed++;
             if (processed === filesToSave.length) {
+                showMessage('❌ Bazı resimler kaydedilemedi!', 'error');
                 if (saveBtn) {
                     saveBtn.disabled = false;
                     saveBtn.textContent = '💾 Resimleri Kaydet';
