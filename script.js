@@ -195,6 +195,8 @@ async function generateBlogPostNowGlobal(isAuto = false) {
         
         if (data.success) {
             console.log('✅ Blog yazısı Vercel Blob Storage\'a kaydedildi!');
+            console.log('📊 Kaydedilen blog yazı sayısı:', blogPosts.length);
+            console.log('📝 Yeni blog yazısı:', { id: blogPostObj.id, title: blogPostObj.title, date: blogPostObj.date });
             
             // localStorage'a da kaydet (fallback için)
             localStorage.setItem('blogPosts', JSON.stringify(blogPosts));
@@ -204,8 +206,10 @@ async function generateBlogPostNowGlobal(isAuto = false) {
             
             console.log('✅ Blog yazısı kaydedildi. Toplam blog sayısı:', blogPosts.length);
             
-            // Admin panelinde varsa listeyi yenile
+            // Admin panelinde varsa listeyi yenile (cache bypass ile)
             if (typeof loadBlogPosts === 'function') {
+                // Biraz bekle ki Vercel Blob Storage güncellensin
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 await loadBlogPosts();
             }
             
@@ -214,6 +218,14 @@ async function generateBlogPostNowGlobal(isAuto = false) {
                 const nextDate = new Date();
                 nextDate.setDate(nextDate.getDate() + 10);
                 updateAutoBlogStatus(blogPost.date, nextDate.toISOString());
+            }
+            
+            // Blog sayfasını da yenilemek için event gönder (eğer açıksa)
+            if (typeof window !== 'undefined' && window.dispatchEvent) {
+                window.dispatchEvent(new CustomEvent('blogPostsUpdated', { 
+                    detail: { count: blogPosts.length, newPost: blogPostObj } 
+                }));
+                console.log('📢 Blog güncelleme eventi gönderildi');
             }
             
             return true;

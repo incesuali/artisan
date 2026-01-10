@@ -61,10 +61,16 @@ module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const posts = await loadBlogPosts();
-      res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
+      // Cache'i kısa tut ama yine de cache'le (performans için)
+      // Client-side'da cache: 'no-cache' kullanıyoruz, bu header sadece CDN için
+      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate, s-maxage=30');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
       return res.status(200).json({
         success: true,
         posts: posts,
+        count: posts.length,
+        timestamp: new Date().toISOString() // Debug için timestamp ekle
       });
     } catch (error) {
       console.error('GET blog posts error:', error);

@@ -206,14 +206,20 @@
             let blogPosts = [];
             
             // Önce Vercel Blob Storage'dan yükle (SADECE BLOB STORAGE - localStorage'a güvenme!)
+            // Cache'i bypass etmek için timestamp ekle
             try {
                 console.log('🔍 Vercel Blob Storage\'dan blog yazıları yükleniyor...');
-                const response = await fetch('/api/blog-posts', {
+                const timestamp = Date.now(); // Cache bypass için timestamp
+                const response = await fetch(`/api/blog-posts?t=${timestamp}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
                     },
-                    cache: 'no-cache' // Cache'i bypass et
+                    cache: 'no-store', // Cache'i tamamen bypass et
+                    credentials: 'omit'
                 });
                 
                 if (!response.ok) {
@@ -222,10 +228,17 @@
                 
                 const data = await response.json();
                 console.log('📦 API Response:', data);
+                console.log('📅 API Timestamp:', data.timestamp);
+                console.log('📊 Blog Yazı Sayısı (API):', data.count || data.posts?.length || 0);
                 
                 if (data.success && data.posts && Array.isArray(data.posts)) {
                     blogPosts = data.posts;
                     console.log('✅ Blog yazıları Vercel Blob Storage\'dan yüklendi:', blogPosts.length, 'yazı');
+                    
+                    // Blog yazılarını console'da göster (debug için)
+                    if (blogPosts.length > 0) {
+                        console.log('📝 Blog yazıları:', blogPosts.map(p => ({ id: p.id, title: p.title, date: p.date })));
+                    }
                     
                     // localStorage'a da kaydet (sadece cache için, güvenilir kaynak Blob Storage)
                     if (blogPosts.length > 0) {
@@ -330,6 +343,18 @@
             return date.toLocaleDateString('fr-FR', options);
         }
         
+        // Blog yazıları güncellendiğinde sayfayı yenile
+        window.addEventListener('blogPostsUpdated', function(event) {
+            console.log('📢 Blog güncelleme eventi alındı:', event.detail);
+            console.log('🔄 Blog yazıları yeniden yükleniyor...');
+            // 2 saniye bekle (Vercel Blob Storage'ın güncellenmesi için)
+            setTimeout(() => {
+                loadBlogPosts().catch(err => {
+                    console.error('Blog yazıları yeniden yüklenirken hata:', err);
+                });
+            }, 2000);
+        });
+        
         // Sayfa yüklendiğinde
         document.addEventListener('DOMContentLoaded', function() {
             loadBlogPosts().catch(err => {
@@ -344,6 +369,14 @@
                 }
             });
         });
+        
+        // Her 30 saniyede bir kontrol et (yeni blog yazıları için)
+        setInterval(function() {
+            console.log('🔄 Otomatik kontrol: Blog yazıları kontrol ediliyor...');
+            loadBlogPosts().catch(err => {
+                console.error('Otomatik kontrol hatası:', err);
+            });
+        }, 30000); // 30 saniye
     </script>
 </body>
 </html>
