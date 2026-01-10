@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     loadKeywords().catch(err => console.error('Kelimeler yüklenirken hata:', err));
     loadAutoBlogSettings();
-    checkAutoBlogSchedule();
+    checkAutoBlogSchedule().catch(err => console.error('Otomatik blog kontrolü hatası:', err));
     
     // Kaydet butonları
     const saveBtn = document.getElementById('save-btn');
@@ -109,17 +109,17 @@ document.addEventListener('DOMContentLoaded', function() {
     setupImageUpload();
     
     // Her saat otomatik blog kontrolü yap (sayfa açıkken)
-    setInterval(function() {
+    setInterval(async function() {
         if (typeof checkAutoBlogSchedule === 'function') {
-            checkAutoBlogSchedule();
+            await checkAutoBlogSchedule();
         }
     }, 3600000); // 1 saat
     
     // İlk kontrol (sayfa yüklendiğinde, tüm scriptler yüklendikten sonra)
-    setTimeout(function() {
+    setTimeout(async function() {
         if (typeof checkAutoBlogSchedule === 'function') {
-            console.log('İlk otomatik blog kontrolü yapılıyor...');
-            checkAutoBlogSchedule();
+            console.log('🔍 İlk otomatik blog kontrolü yapılıyor...');
+            await checkAutoBlogSchedule();
         }
     }, 2000); // 2 saniye bekle
     
@@ -1466,6 +1466,7 @@ async function checkAutoBlogScheduleLocal() {
                 if (lastDate) {
                     localStorage.setItem('lastAutoBlogDate', lastDate);
                 }
+                console.log('✅ Settings Vercel Blob Storage\'dan alındı (checkAutoBlogScheduleLocal)');
             }
         }
     } catch (error) {
@@ -1480,7 +1481,9 @@ async function checkAutoBlogScheduleLocal() {
     
     if (!enabled) {
         console.log('⏸️ Otomatik blog üretimi devre dışı');
-        updateAutoBlogStatus(null, null);
+        if (typeof updateAutoBlogStatus === 'function') {
+            updateAutoBlogStatus(null, null);
+        }
         return;
     }
     
@@ -1497,11 +1500,13 @@ async function checkAutoBlogScheduleLocal() {
                 const keywordsData = await keywordsResponse.json();
                 const words1FromStorage = keywordsData.keywords?.category1 || [];
                 if (words1FromStorage.length >= 4 && typeof generateBlogPostNow === 'function') {
-                    console.log('🚀 İlk blog yazısı oluşturuluyor (Vercel Blob Storage\'dan kelimeler)...');
+                    console.log('🚀 İlk blog yazısı oluşturuluyor (Vercel Blob Storage\'dan kelimeler - Local)...');
                     setTimeout(async () => {
                         await generateBlogPostNow(true);
                     }, 1000);
                     return;
+                } else {
+                    console.warn('⚠️ Vercel Blob Storage\'da yeterli kelime yok:', words1FromStorage.length);
                 }
             }
         } catch (error) {
@@ -1515,6 +1520,8 @@ async function checkAutoBlogScheduleLocal() {
             setTimeout(async () => {
                 await generateBlogPostNow(true);
             }, 1000);
+        } else {
+            console.warn('⚠️ localStorage\'da da yeterli kelime yok:', words1.length);
         }
         return;
     }
@@ -1535,10 +1542,13 @@ async function checkAutoBlogScheduleLocal() {
         nextDateSpan.textContent = formatDate(nextDate.toISOString());
         
         if (diffDays >= 10 && typeof generateBlogPostNow === 'function') {
-            console.log('✅ 10 gün geçti! Yeni blog yazısı oluşturuluyor...');
+            console.log('✅ 10 gün geçti! Yeni blog yazısı oluşturuluyor (Local)...');
             setTimeout(async () => {
                 await generateBlogPostNow(true);
             }, 1000);
+        } else {
+            const remainingDays = 10 - diffDays;
+            console.log(`⏳ Henüz 10 gün geçmedi. Kalan gün: ${remainingDays}`);
         }
     }
 }
