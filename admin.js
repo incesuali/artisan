@@ -45,7 +45,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (saveKeywordsBtn) {
-        saveKeywordsBtn.addEventListener('click', saveKeywords);
+        saveKeywordsBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Kelimeleri Kaydet butonuna tıklandı');
+            saveKeywords();
+        });
+    } else {
+        console.error('save-keywords-btn elementi bulunamadı!');
     }
     
     if (generateBlogNowBtn) {
@@ -903,42 +909,63 @@ function loadKeywords() {
 
 // Kelimeleri kaydet
 function saveKeywords() {
+    console.log('saveKeywords fonksiyonu çağrıldı');
+    
     const keywords1 = document.getElementById('keywords-1');
     const keywords2 = document.getElementById('keywords-2');
     const keywords3 = document.getElementById('keywords-3');
     const keywords4 = document.getElementById('keywords-4');
-    const messageDiv = document.getElementById('auto-blog-message');
     
-    if (!keywords1 || !keywords2 || !keywords3 || !keywords4) return;
+    console.log('Elementler:', { keywords1, keywords2, keywords3, keywords4 });
+    
+    if (!keywords1 || !keywords2 || !keywords3 || !keywords4) {
+        console.error('Kelimeler alanları bulunamadı!');
+        alert('Hata: Kelime alanları bulunamadı. Sayfayı yenileyin.');
+        return;
+    }
     
     const words1 = keywords1.value.split('\n').map(w => w.trim()).filter(w => w);
     const words2 = keywords2.value.split('\n').map(w => w.trim()).filter(w => w);
     const words3 = keywords3.value.split('\n').map(w => w.trim()).filter(w => w);
     const words4 = keywords4.value.split('\n').map(w => w.trim()).filter(w => w);
     
+    console.log('Kelimeler:', { words1: words1.length, words2: words2.length, words3: words3.length, words4: words4.length });
+    
     // Validasyon
     if (words1.length < 4) {
-        showAutoBlogMessage('1. alandan en az 4 kelime girmelisiniz!', 'error');
+        showAutoBlogMessage('1. alandan en az 4 kelime girmelisiniz! (Şu anda ' + words1.length + ' kelime)', 'error');
         return;
     }
     
     if (words2.length < 3) {
-        showAutoBlogMessage('2. alandan en az 3-4 kelime girmelisiniz!', 'error');
+        showAutoBlogMessage('2. alandan en az 3 kelime girmelisiniz! (Şu anda ' + words2.length + ' kelime)', 'error');
         return;
     }
     
     if (words3.length < 7) {
-        showAutoBlogMessage('3. alandan en az 7 kelime girmelisiniz!', 'error');
+        showAutoBlogMessage('3. alandan en az 7 kelime girmelisiniz! (Şu anda ' + words3.length + ' kelime)', 'error');
         return;
     }
     
     // LocalStorage'a kaydet
-    localStorage.setItem('seoKeywords1', JSON.stringify(words1));
-    localStorage.setItem('seoKeywords2', JSON.stringify(words2));
-    localStorage.setItem('seoKeywords3', JSON.stringify(words3));
-    localStorage.setItem('seoKeywords4', JSON.stringify(words4));
-    
-    showAutoBlogMessage('✅ Kelimeler başarıyla kaydedildi!', 'success');
+    try {
+        localStorage.setItem('seoKeywords1', JSON.stringify(words1));
+        localStorage.setItem('seoKeywords2', JSON.stringify(words2));
+        localStorage.setItem('seoKeywords3', JSON.stringify(words3));
+        localStorage.setItem('seoKeywords4', JSON.stringify(words4));
+        
+        console.log('Kelimeler kaydedildi:', {
+            keywords1: words1.length,
+            keywords2: words2.length,
+            keywords3: words3.length,
+            keywords4: words4.length
+        });
+        
+        showAutoBlogMessage('✅ Kelimeler başarıyla kaydedildi! (1. Alan: ' + words1.length + ', 2. Alan: ' + words2.length + ', 3. Alan: ' + words3.length + ', 4. Alan: ' + words4.length + ')', 'success');
+    } catch (error) {
+        console.error('Kaydetme hatası:', error);
+        showAutoBlogMessage('❌ Kelimeler kaydedilirken bir hata oluştu: ' + error.message, 'error');
+    }
 }
 
 // Rastgele seçim fonksiyonu
