@@ -55,8 +55,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Otomatik blog sistemini kontrol et (her sayfa yüklendiğinde)
     // 2 saniye bekle (tüm scriptlerin yüklenmesi için)
-    setTimeout(function() {
-        checkAutoBlogScheduleGlobal();
+    setTimeout(async function() {
+        if (typeof checkAutoBlogScheduleGlobal === 'function') {
+            await checkAutoBlogScheduleGlobal();
+        }
     }, 2000);
 });
 

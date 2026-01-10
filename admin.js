@@ -48,7 +48,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     loadKeywords().catch(err => console.error('Kelimeler yüklenirken hata:', err));
     loadAutoBlogSettings();
-    checkAutoBlogSchedule().catch(err => console.error('Otomatik blog kontrolü hatası:', err));
+    
+    // Otomatik blog kontrolü (async)
+    setTimeout(async () => {
+        try {
+            await checkAutoBlogSchedule();
+        } catch (err) {
+            console.error('Otomatik blog kontrolü hatası:', err);
+        }
+    }, 3000); // 3 saniye bekle (tüm API'lerin hazır olması için)
     
     // Kaydet butonları
     const saveBtn = document.getElementById('save-btn');
