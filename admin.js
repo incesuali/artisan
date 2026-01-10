@@ -886,23 +886,181 @@ function loadKeywords() {
     const keywords3 = document.getElementById('keywords-3');
     const keywords4 = document.getElementById('keywords-4');
     
+    // Varsayılan kelimeler
+    const defaultKeywords1 = [
+        'Parquet massif',
+        'Parquet contrecollé',
+        'Parquet stratifié',
+        'Parquet flottant',
+        'Parquet adhésif',
+        'Parquet sur mesure',
+        'Parquet vieilli',
+        'Parquet exotique',
+        'Revêtement de sol vinyle',
+        'Parquet en chêne',
+        'Parquet en bambou',
+        'Parquet huilé',
+        'Parquet verni',
+        'Parquet brut',
+        'Parquet huilé-cire'
+    ];
+    
+    const defaultKeywords2 = [
+        'Pose à l\'anglaise',
+        'Pose à la française',
+        'Parquet point de Hongrie',
+        'Parquet bâtons rompus',
+        'Dalles de Versailles',
+        'Pose en coupe de pierre',
+        'Pose à bâtons rompus double',
+        'Pose en échelle',
+        'Pose en damier',
+        'Pose en vannerie',
+        'Pose en fougère',
+        'Pose à joints perdus',
+        'Pose à joints alignés',
+        'Pose mosaïque'
+    ];
+    
+    const defaultKeywords3 = [
+        'Lille',
+        'Roubaix',
+        'Tourcoing',
+        'Villeneuve-d\'Ascq',
+        'Marcq-en-Barœul',
+        'Lambersart',
+        'Armentières',
+        'Loos',
+        'Hazebrouck',
+        'Bailleul',
+        'La Madeleine',
+        'Mons-en-Barœul',
+        'Croix',
+        'Wasquehal',
+        'Halluin',
+        'Hem',
+        'Roncq',
+        'Wattrelos',
+        'Faches-Thumesnil',
+        'Haubourdin',
+        'Wattignies',
+        'Saint-André-lez-Lille',
+        'Bondues',
+        'Mouvaux',
+        'Seclin',
+        'Marquette-lez-Lille',
+        'Wambrechies',
+        'Linselles',
+        'Lys-lez-Lannoy',
+        'Leers',
+        'Comines',
+        'Neuville-en-Ferrain',
+        'Nienie',
+        'Quesnoy-sur-Deûle',
+        'Houplines',
+        'La Chapelle-d\'Armentières',
+        'Erquinghem-Lys',
+        'Wavrin',
+        'Sainghin-en-Weppes',
+        'Annœullin',
+        'Provin',
+        'Bauvin',
+        'Wingles',
+        'Lens',
+        'Liévin',
+        'Hénin-Beaumont',
+        'Carvin',
+        'Libercourt',
+        'Courrières',
+        'Harnes',
+        'Méricourt',
+        'Billy-Montigny',
+        'Sallaumines',
+        'Noyelles-Godault',
+        'Montigny-en-Gohelle',
+        'Oignies',
+        'Dourges',
+        'Ostricourt',
+        'Orchies',
+        'Cysoing',
+        'Baisieux',
+        'Templeuve-en-Pévèle',
+        'Pont-à-Marcq',
+        'Lesquin',
+        'Ronchin',
+        'Vendin-le-Vieil',
+        'Loison-sous-Lens',
+        'Avion',
+        'Douai',
+        'Sin-le-Noble',
+        'Auby',
+        'Cuincy',
+        'Lauwin-Planque',
+        'Roost-Warendin',
+        'Flers-en-Escrebieux',
+        'Pecquencourt',
+        'Aniche',
+        'Somain',
+        'Mouscron (BE)',
+        'Tournai (BE)',
+        'Menen (BE)',
+        'Kortrijk (BE)',
+        'Comines-Warneton (BE)',
+        'Estaimpuis (BE)',
+        'Péruwelz (BE)'
+    ];
+    
+    const defaultKeywords4 = [
+        'Leroy Merlin',
+        'Castorama',
+        'Brico Dépôt',
+        'Bricoman',
+        'Bricorama',
+        'Bricomarché',
+        'Mr.Bricolage'
+    ];
+    
+    // LocalStorage'dan yükle, yoksa varsayılanları kullan
+    let stored1 = JSON.parse(localStorage.getItem('seoKeywords1') || '[]');
+    let stored2 = JSON.parse(localStorage.getItem('seoKeywords2') || '[]');
+    let stored3 = JSON.parse(localStorage.getItem('seoKeywords3') || '[]');
+    let stored4 = JSON.parse(localStorage.getItem('seoKeywords4') || '[]');
+    
+    // Eğer localStorage boşsa, varsayılan kelimeleri kaydet
+    if (stored1.length === 0) {
+        stored1 = defaultKeywords1;
+        localStorage.setItem('seoKeywords1', JSON.stringify(stored1));
+    }
+    
+    if (stored2.length === 0) {
+        stored2 = defaultKeywords2;
+        localStorage.setItem('seoKeywords2', JSON.stringify(stored2));
+    }
+    
+    if (stored3.length === 0) {
+        stored3 = defaultKeywords3;
+        localStorage.setItem('seoKeywords3', JSON.stringify(stored3));
+    }
+    
+    if (stored4.length === 0) {
+        stored4 = defaultKeywords4;
+        localStorage.setItem('seoKeywords4', JSON.stringify(stored4));
+    }
+    
+    // UI'ya yükle
     if (keywords1) {
-        const stored1 = JSON.parse(localStorage.getItem('seoKeywords1') || '[]');
         keywords1.value = stored1.join('\n');
     }
     
     if (keywords2) {
-        const stored2 = JSON.parse(localStorage.getItem('seoKeywords2') || '[]');
         keywords2.value = stored2.join('\n');
     }
     
     if (keywords3) {
-        const stored3 = JSON.parse(localStorage.getItem('seoKeywords3') || '[]');
         keywords3.value = stored3.join('\n');
     }
     
     if (keywords4) {
-        const stored4 = JSON.parse(localStorage.getItem('seoKeywords4') || '[]');
         keywords4.value = stored4.join('\n');
     }
 }
