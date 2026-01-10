@@ -8,8 +8,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mevcut değerleri yükle
     loadCurrentValues();
     loadGalleryImages();
-    loadBlogPosts();
-    loadKeywords();
+    // Blog yazıları yönetimi - Önce yükle, sonra localStorage'daki verileri senkronize et
+    loadBlogPosts().then(() => {
+        // Eğer localStorage'da blog yazıları varsa ama Vercel Blob Storage'da yoksa, senkronize et
+        const localPosts = JSON.parse(localStorage.getItem('blogPosts') || '[]');
+        if (localPosts.length > 0) {
+            console.log('💡 Admin panel: localStorage\'da blog yazıları var (' + localPosts.length + '), kontrol ediliyor...');
+            // Vercel Blob Storage'dan mevcut yazıları kontrol et
+            fetch('/api/blog-posts')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.posts && data.posts.length === 0) {
+                        // Vercel Blob Storage boş, localStorage'dakileri yükle
+                        console.log('💡 Vercel Blob Storage boş, localStorage\'daki blog yazıları yükleniyor...');
+                        return fetch('/api/blog-posts', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ posts: localPosts }),
+                        });
+                    }
+                })
+                .then(response => {
+                    if (response) {
+                        return response.json();
+                    }
+                })
+                .then(data => {
+                    if (data && data.success) {
+                        console.log('✅ Admin panel: Blog yazıları Vercel Blob Storage\'a senkronize edildi!');
+                        // Listeyi yenile
+                        loadBlogPosts();
+                    }
+                })
+                .catch(err => console.error('⚠️ Admin panel: Senkronizasyon hatası:', err));
+        }
+    }).catch(err => console.error('Blog yazıları yüklenirken hata:', err));
+    
+    loadKeywords().catch(err => console.error('Kelimeler yüklenirken hata:', err));
     loadAutoBlogSettings();
     checkAutoBlogSchedule();
     
