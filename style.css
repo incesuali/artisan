@@ -722,6 +722,8 @@ body::before {
     
     .gallery.active {
         max-height: 350px;
+        margin-top: 30px;
+        margin-bottom: 30px;
     }
     
     .btn-realizations,
