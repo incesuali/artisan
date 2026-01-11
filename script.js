@@ -82,6 +82,19 @@ document.addEventListener('DOMContentLoaded', function() {
             await checkAutoBlogScheduleGlobal();
         }
     }, 2000);
+    
+    // "pas cher" animasyonu: 3 saniye sonra göster, 1 saniye sonra gizle
+    const pasCherText = document.getElementById('pas-cher-text');
+    if (pasCherText) {
+        // 3 saniye sonra göster
+        setTimeout(function() {
+            pasCherText.classList.add('show');
+            // 1 saniye sonra gizle
+            setTimeout(function() {
+                pasCherText.classList.remove('show');
+            }, 1000);
+        }, 3000);
+    }
 });
 
 // ========== OTOMATIK BLOG SİSTEMİ (Global - Her Sayfada Çalışır) ==========
