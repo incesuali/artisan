@@ -83,16 +83,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 2000);
     
-    // "pas cher" animasyonu: 3 saniye sonra göster, 1 saniye sonra gizle
+    // "pas cher" animasyonu: 3 saniye sonra göster, 0.5 saniye sonra gizle
     const pasCherText = document.getElementById('pas-cher-text');
     if (pasCherText) {
         // 3 saniye sonra göster
         setTimeout(function() {
             pasCherText.classList.add('show');
-            // 1 saniye sonra gizle
+            // 0.5 saniye sonra gizle
             setTimeout(function() {
                 pasCherText.classList.remove('show');
-            }, 1000);
+            }, 500);
         }, 3000);
     }
 });
