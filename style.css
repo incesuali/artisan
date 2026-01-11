@@ -362,12 +362,15 @@ body::before {
     text-align: center;
     color: #ffffff;
     font-weight: 500;
+    display: block;
+    width: 100%;
 }
 
 .pas-cher-text {
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
+    display: inline;
 }
 
 .pas-cher-text.show {
