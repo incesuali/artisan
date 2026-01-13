@@ -1,5 +1,59 @@
 # SEO Checklist - Artisan Parqueteur Nord
 
+## ⚠️ KRİTİK: Domain Değişikliği - Indexing Engellendi
+
+**TARİH:** 13 Ocak 2025  
+**SEBEP:** Domain değişikliği (artisanparqueteurnord.xyz → yeni domain)
+
+**YAPILAN DEĞİŞİKLİKLER:**
+- ✅ `robots.txt` → `Disallow: /` (tüm sayfalar engellendi)
+- ✅ Tüm HTML sayfalarında meta robots tag → `noindex, nofollow`
+
+**YENİ DOMAIN HAZIR OLDUĞUNDA MUTLAKA YAPILACAKLAR:**
+
+1. **robots.txt Düzelt:**
+   ```txt
+   User-agent: *
+   Allow: /  # Disallow: / yerine
+   Sitemap: https://YENI-DOMAIN.xyz/sitemap.xml  # Aktif et
+   ```
+
+2. **Meta Robots Tag Düzelt (Tüm HTML Sayfalarında):**
+   - `index.html`
+   - `blog.html`
+   - `blog-post.html`
+   
+   ```html
+   <!-- Önceki (ŞU ANKİ - KALDIRILACAK) -->
+   <meta name="robots" content="noindex, nofollow">
+   
+   <!-- Yeni (YAPILACAK) -->
+   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+   ```
+
+3. **Google Search Console:**
+   - Yeni domain'i ekle
+   - Verification yap
+   - Sitemap gönder: `https://YENI-DOMAIN.xyz/sitemap.xml`
+
+4. **Tüm Dosyalarda Domain Güncelle:**
+   - `index.html` → Tüm URL'ler
+   - `blog.html` → Tüm URL'ler
+   - `blog-post.html` → Tüm URL'ler
+   - `sitemap.xml` → BASE_URL
+   - `api/sitemap.xml.js` → BASE_URL
+   - `robots.txt` → Sitemap URL
+   - Structured Data (JSON-LD) → Tüm URL'ler
+   - Canonical URLs → Tüm sayfalarda
+   - Open Graph tags → og:url
+   - Twitter Cards → twitter:url
+
+5. **Bu Notu Kaldır:**
+   - SEO_CHECKLIST.md'den bu bölümü sil
+   - README.md'den bu bölümü sil
+
+---
+
 ## ✅ Tamamlanan SEO Optimizasyonları
 
 ### 1. Meta Tags & Basic SEO

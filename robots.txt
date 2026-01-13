@@ -1,8 +1,9 @@
 # Robots.txt for Artisan Parqueteur Nord
-# Allow all search engines to crawl the site
+# ⚠️ TEMPORARILY BLOCKING ALL CRAWLERS - Domain change in progress
+# TODO: Remove this block when new domain is ready and SEO setup is complete
 
 User-agent: *
-Allow: /
+Disallow: /
 
 # Disallow admin panel
 Disallow: /admin.html
@@ -10,8 +11,8 @@ Disallow: /admin.html
 # Disallow API endpoints
 Disallow: /api/
 
-# Sitemap location
-Sitemap: https://artisanparqueteurnord.xyz/sitemap.xml
+# Sitemap location (commented out - site is blocked from indexing)
+# Sitemap: https://artisanparqueteurnord.xyz/sitemap.xml
 
 # Crawl-delay (optional, for aggressive crawlers)
 User-agent: *
