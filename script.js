@@ -894,13 +894,35 @@ function openModalWithImages() {
 
 // Images klasöründeki resimleri bul (fallback)
 function getImagesFromFolder() {
-    // Önce sayfadaki tüm resimleri topla
+    // images klasöründeki tüm Parquet contrecollé resimlerini listele
+    // Arka plan resmi (Gemini_Generated_Image_aehbrgaehbrgaehb.png) hariç tutulur
+    const knownImages = [
+        'images/Parquet contrecollé.png',
+        'images/Parquet contrecollé (1).png',
+        'images/Parquet contrecollé (2).png',
+        'images/Parquet contrecollé (3).png',
+        'images/Parquet contrecollé (4).png',
+        'images/Parquet contrecollé (5).png',
+        'images/Parquet contrecollé (6).png',
+        'images/Parquet contrecollé (7).png',
+        'images/Parquet contrecollé (8).png',
+        'images/Parquet contrecollé (9).png'
+    ];
+    return knownImages;
+    
+    // Eski kod - sayfadaki tüm resimleri toplama (artık kullanılmıyor)
+    /*
     const pageImages = [];
     const allImgTags = document.querySelectorAll('img');
     
     allImgTags.forEach(img => {
         let src = img.src || img.getAttribute('src');
         if (src && (src.includes('images/') || src.includes('/images/'))) {
+            // Arka plan resmini hariç tut
+            if (src.includes('Gemini_Generated_Image_aehbrgaehbrgaehb.png')) {
+                return;
+            }
+            
             // URL'yi normalize et
             if (src.includes('http://') || src.includes('https://')) {
                 try {
