@@ -75,31 +75,21 @@ body::before {
     50% { transform: translate(0%, 0%) scale(1.1); opacity: 1; }
 }
 
-/* Header Logo Container */
-.header-logo-container {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    z-index: 1;
-}
-
-/* Header Logo SVG */
+/* Header Logo */
 .header-logo {
     max-width: 320px;
     width: 100%;
     height: auto;
     display: block;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+    object-fit: contain;
 }
 
 @media (max-width: 400px) {
     .header-logo {
         max-width: 280px;
-    }
-    
-    .header-logo text {
-        font-size: 24px !important;
     }
 }
 
