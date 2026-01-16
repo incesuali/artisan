@@ -20,22 +20,9 @@
    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
    ```
 
-3. **Google Search Console:**
-   - Yeni domain'i ekle
-   - Verification yap
-   - Sitemap gönder: `https://YENI-DOMAIN.xyz/sitemap.xml`
-
-4. **Tüm Dosyalarda Domain Güncelle:**
-   - `index.html` → Tüm URL'ler
-   - `blog.html` → Tüm URL'ler
-   - `blog-post.html` → Tüm URL'ler
-   - `sitemap.xml` → BASE_URL
-   - `api/sitemap.xml.js` → BASE_URL
-   - `robots.txt` → Sitemap URL
-   - Structured Data (JSON-LD) → Tüm URL'ler
-   - Canonical URLs → Tüm sayfalarda
-   - Open Graph tags → og:url
-   - Twitter Cards → twitter:url
+**Google Search Console:**
+   - Domain: `artisanparqueteurnord.xyz`
+   - Sitemap gönderildi: `https://artisanparqueteurnord.xyz/sitemap.xml`
 
 5. **Bu Notu Kaldır:**
    - SEO_CHECKLIST.md'den bu bölümü sil
