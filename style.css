@@ -49,11 +49,14 @@ body::before {
 .header {
     background: #ffffff;
     color: #000000;
-    padding: 25px 20px 20px;
+    padding: 30px 20px;
     text-align: center;
     position: relative;
     box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .header::before {
@@ -72,45 +75,22 @@ body::before {
     50% { transform: translate(0%, 0%) scale(1.1); opacity: 1; }
 }
 
-/* Logo */
-.logo {
-    font-size: 32px;
-    font-weight: 900;
-    color: #B02040;
-    margin-bottom: 12px;
-    letter-spacing: 4px;
+/* Header Logo */
+.header-logo {
+    max-width: 280px;
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
     position: relative;
     z-index: 1;
-    font-family: 'Poppins', sans-serif;
-    text-shadow: 
-        0 0 10px rgba(176, 32, 64, 0.8),
-        0 0 20px rgba(176, 32, 64, 0.6),
-        0 0 30px rgba(176, 32, 64, 0.4),
-        2px 2px 0px rgba(255, 255, 255, 0.3),
-        -2px -2px 0px rgba(255, 255, 255, 0.3),
-        2px -2px 0px rgba(255, 255, 255, 0.3),
-        -2px 2px 0px rgba(255, 255, 255, 0.3);
-    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5);
+    object-fit: contain;
 }
 
-.header h1 {
-    font-size: 22px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    line-height: 1.3;
-    letter-spacing: -0.3px;
-    color: #000000;
-    position: relative;
-    z-index: 1;
-}
-
-.tagline {
-    font-size: 13px;
-    font-weight: 400;
-    color: #ffe682;
-    letter-spacing: 0.3px;
-    position: relative;
-    z-index: 1;
+@media (max-width: 400px) {
+    .header-logo {
+        max-width: 240px;
+    }
 }
 
 /* Main Content */
