@@ -651,30 +651,25 @@ function formatDateGlobal(dateString) {
 // İlk 4 resmi preload et
 function preloadFirstImages() {
     setTimeout(() => {
-        fetch('/api/images', { cache: 'force-cache' })
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
+        try {
+            // Sadece local images klasöründeki resimleri preload et
+            const localImages = getImagesFromFolder();
+            const firstFour = localImages.slice(0, 4);
+            firstFour.forEach(imgUrl => {
+                try {
+                    const link = document.createElement('link');
+                    link.rel = 'preload';
+                    link.as = 'image';
+                    link.href = imgUrl;
+                    link.fetchPriority = 'high';
+                    document.head.appendChild(link);
+                } catch (linkError) {
+                    console.warn('Preload link eklenemedi:', linkError);
                 }
-                return null;
-            })
-            .then(data => {
-                if (data && data.success && data.images && data.images.length > 0) {
-                    // İlk 4 resmi preload et
-                    const firstFour = data.images.slice(0, 4);
-                    firstFour.forEach(img => {
-                        const link = document.createElement('link');
-                        link.rel = 'preload';
-                        link.as = 'image';
-                        link.href = img.url || img.filename;
-                        link.fetchPriority = 'high';
-                        document.head.appendChild(link);
-                    });
-                }
-            })
-            .catch(error => {
-                console.log('Preload hatası:', error);
             });
+        } catch (error) {
+            console.log('Preload hatası:', error);
+        }
     }, 100);
 }
 
@@ -709,7 +704,7 @@ if (emailElement) {
     });
 }
 
-// Galeri resimlerini sunucudan yükle
+// Galeri resimlerini local images klasöründen yükle
 function loadGalleryFromStorage() {
     try {
         const galleryGrid = document.querySelector('.gallery-grid');
@@ -718,77 +713,32 @@ function loadGalleryFromStorage() {
             return;
         }
         
-        // Önce sunucudan yükle
-        fetch('/api/images')
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error('API yanıt vermedi');
-            })
-            .then(data => {
+        // Sadece local images klasöründeki resimleri kullan
+        const localImages = getImagesFromFolder();
+        console.log('📸 Local images klasöründen resimler yüklendi:', localImages.length);
+        
+        if (localImages.length > 0) {
+            // LocalStorage'a kaydet
+            localStorage.setItem('galleryImages', JSON.stringify(localImages));
+            
+            // Galeriyi güncelle
+            updateGalleryGrid(localImages);
+        } else {
+            console.warn('⚠️ Local images klasöründe resim bulunamadı');
+            // Son çare: localStorage'dan yükle
+            const storedImages = localStorage.getItem('galleryImages');
+            if (storedImages) {
                 try {
-                    if (data.success && data.images && data.images.length > 0) {
-                        const imageUrls = data.images.map(img => {
-                            let url = img.url || img.filename;
-                            // Vercel Blob Storage URL'leri tam URL'dir (https://...), normalize etme
-                            // Sadece relative path'leri normalize et
-                            if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:')) {
-                            if (url.startsWith('/')) {
-                                url = url.substring(1);
-                            }
-                            if (!url.startsWith('images/')) {
-                                url = 'images/' + url;
-                                }
-                            }
-                            return url;
-                        });
-                        
-                        console.log('✅ Sunucudan galeri resimleri yüklendi:', imageUrls.length);
-                        
-                        // LocalStorage'a kaydet
-                        localStorage.setItem('galleryImages', JSON.stringify(imageUrls));
-                        
-                        // Galeriyi güncelle
-                        updateGalleryGrid(imageUrls);
-                    } else {
-                        throw new Error('Backend\'de resim yok');
+                    const images = JSON.parse(storedImages);
+                    if (images.length > 0) {
+                        console.log('LocalStorage\'dan galeri yüklendi:', images.length);
+                        updateGalleryGrid(images);
                     }
-                } catch (error) {
-                    console.error('❌ Resim işleme hatası:', error);
-                    throw error;
+                } catch (e) {
+                    console.error('LocalStorage parse hatası:', e);
                 }
-            })
-            .catch(error => {
-                console.log('Backend yok, fallback kullanılıyor:', error.message);
-                try {
-                    // Hata durumunda images klasöründeki tüm resimleri göster
-                    const fallbackImages = getImagesFromFolder();
-                    console.log('📸 Fallback resimler:', fallbackImages.length);
-                    if (fallbackImages.length > 0) {
-                        updateGalleryGrid(fallbackImages);
-                        // LocalStorage'a da kaydet
-                        localStorage.setItem('galleryImages', JSON.stringify(fallbackImages));
-                    } else {
-                        // Son çare: localStorage'dan yükle
-                        const storedImages = localStorage.getItem('galleryImages');
-                        if (storedImages) {
-                            try {
-                                const images = JSON.parse(storedImages);
-                                if (images.length > 0) {
-                                    console.log('LocalStorage\'dan galeri yüklendi:', images.length);
-                                    updateGalleryGrid(images);
-                                }
-                            } catch (e) {
-                                console.error('LocalStorage parse hatası:', e);
-                            }
-                        }
-                    }
-                } catch (fallbackError) {
-                    console.error('❌ Fallback hatası:', fallbackError);
-                    // Hata olsa bile devam et, butonlar çalışmaya devam etmeli
-                }
-            });
+            }
+        }
     } catch (error) {
         console.error('❌ loadGalleryFromStorage genel hatası:', error);
         // Hata olsa bile devam et
@@ -938,69 +888,26 @@ function openImageModal() {
         
         console.log('Modal açılıyor...');
         
-        // Önce backend'den resimleri dene
-        fetch('/api/images')
-            .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error('API yanıt vermedi');
-            })
-            .then(data => {
+        // Sadece local images klasöründeki resimleri kullan
+        galleryImages = getImagesFromFolder();
+        
+        if (galleryImages.length === 0) {
+            // Son çare: localStorage'dan yükle
+            const storedImages = localStorage.getItem('galleryImages');
+            if (storedImages) {
                 try {
-                    if (data.success && data.images && data.images.length > 0) {
-                        galleryImages = data.images.map(img => {
-                            let url = img.url || img.filename;
-                            // Vercel Blob Storage URL'leri tam URL'dir (https://...), normalize etme
-                            // Sadece relative path'leri normalize et
-                            if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('data:')) {
-                            if (url.startsWith('/')) {
-                                url = url.substring(1);
-                            }
-                            if (!url.startsWith('images/')) {
-                                url = 'images/' + url;
-                                }
-                            }
-                            return url;
-                        });
-                        console.log('✅ Backend\'den resimler yüklendi:', galleryImages.length);
-                    } else {
-                        throw new Error('Backend\'de resim yok');
-                    }
-                    openModalWithImages();
-                } catch (processError) {
-                    console.error('❌ Resim işleme hatası:', processError);
-                    throw processError;
+                    galleryImages = JSON.parse(storedImages);
+                    console.log('LocalStorage\'dan resimler yüklendi:', galleryImages.length);
+                } catch (e) {
+                    console.error('LocalStorage parse hatası:', e);
                 }
-            })
-            .catch(error => {
-                console.log('Backend yok, fallback kullanılıyor:', error.message);
-                try {
-                    // Backend yoksa, images klasöründeki tüm resimleri kullan
-                    galleryImages = getImagesFromFolder();
-                    
-                    if (galleryImages.length === 0) {
-                        // Son çare: localStorage'dan yükle
-                        const storedImages = localStorage.getItem('galleryImages');
-                        if (storedImages) {
-                            try {
-                                galleryImages = JSON.parse(storedImages);
-                                console.log('LocalStorage\'dan resimler yüklendi:', galleryImages.length);
-                            } catch (e) {
-                                console.error('LocalStorage parse hatası:', e);
-                            }
-                        }
-                    }
-                    
-                    console.log('📸 Toplam resim sayısı:', galleryImages.length);
-                    console.log('📸 Resimler:', galleryImages);
-                    
-                    openModalWithImages();
-                } catch (fallbackError) {
-                    console.error('❌ Fallback hatası:', fallbackError);
-                    alert('Galeri açılırken bir hata oluştu. Lütfen tekrar deneyin.');
-                }
-            });
+            }
+        }
+        
+        console.log('📸 Toplam resim sayısı:', galleryImages.length);
+        console.log('📸 Resimler:', galleryImages);
+        
+        openModalWithImages();
     } catch (error) {
         console.error('❌ openImageModal genel hatası:', error);
         alert('Galeri açılırken bir hata oluştu. Lütfen tekrar deneyin.');
@@ -1030,9 +937,9 @@ function openModalWithImages() {
 
 // Images klasöründeki resimleri bul (fallback)
 function getImagesFromFolder() {
-    // images klasöründeki tüm Parquet contrecollé resimlerini listele
-    // Arka plan resmi (Gemini_Generated_Image_aehbrgaehbrgaehb.png) hariç tutulur
+    // images klasöründeki tüm resimleri listele
     const knownImages = [
+        'images/Gemini_Generated_Image_aehbrgaehbrgaehb.png',
         'images/Parquet contrecollé.png',
         'images/Parquet contrecollé (1).png',
         'images/Parquet contrecollé (2).png',
