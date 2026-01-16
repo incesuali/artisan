@@ -30,6 +30,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 console.log('📊 Google Analytics: WhatsApp button click tracked');
             }
+            // Meta Pixel event tracking - Contact
+            if (typeof fbq !== 'undefined') {
+                fbq('track', 'Contact');
+                console.log('📊 Meta Pixel: Contact event tracked (WhatsApp)');
+            }
         });
     }
 
@@ -55,6 +60,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     'value': 1
                 });
                 console.log('📊 Google Analytics: SMS button click tracked');
+            }
+            // Meta Pixel event tracking - Contact
+            if (typeof fbq !== 'undefined') {
+                fbq('track', 'Contact');
+                console.log('📊 Meta Pixel: Contact event tracked (SMS)');
             }
             
             // SMS protokolü ile telefon numarasını aç
