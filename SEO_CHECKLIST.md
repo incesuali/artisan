@@ -76,14 +76,14 @@
 
 ### Google Search Console
 1. Google Search Console'a git: https://search.google.com/search-console
-2. Mülk ekle: https://artisanparquateur.vercel.app
+2. Mülk ekle: https://a-parqueteur.xyz
 3. Domain verification yöntemi seç:
    - HTML tag verification: `index.html` dosyasına eklenmesi gereken meta tag
    - DNS verification: Domain kayıt şirketinde TXT kaydı ekleme
    - HTML file upload: Verification dosyası yükleme
 4. Verification sonrası:
-   - Sitemap gönder: https://artisanparquateur.vercel.app/sitemap.xml
-   - Robots.txt kontrol et: https://artisanparquateur.vercel.app/robots.txt
+   - Sitemap gönder: https://a-parqueteur.xyz/sitemap.xml
+   - Robots.txt kontrol et: https://a-parqueteur.xyz/robots.txt
    - URL Inspection tool ile sayfaları test et
 
 ### Google Analytics 4 (GA4)
@@ -94,7 +94,7 @@
 
 ### Bing Webmaster Tools
 1. Bing Webmaster Tools'a git: https://www.bing.com/webmasters
-2. Site ekle: https://artisanparquateur.vercel.app
+2. Site ekle: https://a-parqueteur.xyz
 3. Verification yap
 4. Sitemap gönder
 
@@ -106,7 +106,7 @@
    - Adres: Nord, Hauts-de-France, France
    - Telefon: +33627943616
    - Email: artisanparqueteurnord@gmail.com
-   - Website: https://artisanparquateur.vercel.app
+   - Website: https://a-parqueteur.xyz
    - Çalışma saatleri: Pazartesi-Cuma 08:00-18:00
    - Servis alanları: Lille, Roubaix, Tourcoing, Lens, ve tüm Nord bölgesi
 3. Verification yap (posta ile doğrulama kodu gönderilebilir)
@@ -196,7 +196,7 @@
 
 ## 🔧 Teknik Detaylar
 
-- Site URL: https://artisanparquateur.vercel.app
+- Site URL: https://a-parqueteur.xyz
 - Framework: Static HTML/CSS/JavaScript
 - Hosting: Vercel (CDN with global edge locations)
 - Storage: Vercel Blob Storage (Paris region - CDG1)
