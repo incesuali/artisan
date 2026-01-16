@@ -765,15 +765,23 @@ function updateGalleryGrid(images) {
         
         images.forEach((imageUrl, index) => {
             try {
-                // URL'yi normalize et - Vercel Blob Storage URL'leri tam URL'dir (https://...)
+                // URL'yi normalize et - Vercel'de mutlak yol kullanılmalı (/images/...)
                 let src = imageUrl;
                 // Eğer tam URL değilse (http/https/data ile başlamıyorsa) normalize et
                 if (!src.startsWith('http://') && !src.startsWith('https://') && !src.startsWith('data:')) {
-                if (src.startsWith('/')) {
-                    src = src.substring(1);
-                }
-                if (!src.startsWith('images/')) {
-                    src = 'images/' + src;
+                    // Vercel'de mutlak yol kullanılmalı (/images/...)
+                    if (src.startsWith('/')) {
+                        // Zaten / ile başlıyorsa olduğu gibi bırak
+                        if (!src.startsWith('/images/')) {
+                            src = '/images/' + src.substring(1);
+                        }
+                    } else {
+                        // / ile başlamıyorsa /images/ ekle
+                        if (!src.startsWith('images/')) {
+                            src = '/images/' + src;
+                        } else {
+                            src = '/' + src; // images/ ile başlıyorsa başına / ekle
+                        }
                     }
                 }
                 
@@ -938,18 +946,19 @@ function openModalWithImages() {
 // Images klasöründeki resimleri bul (fallback)
 function getImagesFromFolder() {
     // images klasöründeki tüm resimleri listele
+    // Vercel'de mutlak yol kullanılmalı (/images/...)
     const knownImages = [
-        'images/Gemini_Generated_Image_aehbrgaehbrgaehb.png',
-        'images/Parquet contrecollé.png',
-        'images/Parquet contrecollé (1).png',
-        'images/Parquet contrecollé (2).png',
-        'images/Parquet contrecollé (3).png',
-        'images/Parquet contrecollé (4).png',
-        'images/Parquet contrecollé (5).png',
-        'images/Parquet contrecollé (6).png',
-        'images/Parquet contrecollé (7).png',
-        'images/Parquet contrecollé (8).png',
-        'images/Parquet contrecollé (9).png'
+        '/images/Gemini_Generated_Image_aehbrgaehbrgaehb.png',
+        '/images/Parquet contrecollé.png',
+        '/images/Parquet contrecollé (1).png',
+        '/images/Parquet contrecollé (2).png',
+        '/images/Parquet contrecollé (3).png',
+        '/images/Parquet contrecollé (4).png',
+        '/images/Parquet contrecollé (5).png',
+        '/images/Parquet contrecollé (6).png',
+        '/images/Parquet contrecollé (7).png',
+        '/images/Parquet contrecollé (8).png',
+        '/images/Parquet contrecollé (9).png'
     ];
     return knownImages;
     
@@ -1054,15 +1063,21 @@ function showImage(index) {
         return;
     }
     
-    // URL'yi normalize et - images/ ile başlıyorsa olduğu gibi bırak
+    // URL'yi normalize et - Vercel'de mutlak yol kullanılmalı (/images/...)
     if (!imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
-        // Eğer zaten images/ ile başlıyorsa, / ekleme
-        if (!imageUrl.startsWith('/') && !imageUrl.startsWith('images/')) {
-            imageUrl = 'images/' + imageUrl;
-        } else if (!imageUrl.startsWith('/') && imageUrl.startsWith('images/')) {
-            // images/ ile başlıyorsa olduğu gibi bırak
-        } else if (imageUrl.startsWith('/')) {
+        // Vercel'de mutlak yol kullanılmalı (/images/...)
+        if (imageUrl.startsWith('/')) {
             // Zaten / ile başlıyorsa olduğu gibi bırak
+            if (!imageUrl.startsWith('/images/')) {
+                imageUrl = '/images/' + imageUrl.substring(1);
+            }
+        } else {
+            // / ile başlamıyorsa normalize et
+            if (imageUrl.startsWith('images/')) {
+                imageUrl = '/' + imageUrl; // images/ ile başlıyorsa başına / ekle
+            } else {
+                imageUrl = '/images/' + imageUrl; // Direkt dosya adıysa /images/ ekle
+            }
         }
     }
     
