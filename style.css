@@ -248,6 +248,12 @@ body::before {
     padding: 10px 0;
 }
 
+@media (min-width: 600px) {
+    .gallery-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
 .gallery-item {
     aspect-ratio: 1;
     border-radius: 12px;
