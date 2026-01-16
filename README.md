@@ -2,25 +2,18 @@
 
 Mobil odaklı, tek sayfalık iletişim sitesi.
 
-## ⚠️ ÖNEMLİ: Domain Değişikliği - Indexing Engellendi
+## ✅ SEO ve İndeksleme Durumu
 
 **TARİH:** 13 Ocak 2025
 
-**DURUM:** Site şu anda Google'a indekslenmesi engellenmiş durumda (domain değişikliği nedeniyle).
+**DURUM:** Site Google ve diğer arama motorları tarafından indekslenebilir durumda.
 
-**YAPILAN DEĞİŞİKLİKLER:**
-1. `robots.txt` → `Disallow: /` (tüm sayfalar engellendi)
-2. Tüm HTML sayfalarında meta robots tag → `noindex, nofollow`
+**AKTİF AYARLAR:**
+- ✅ `robots.txt` → `Allow: /` (tüm sayfalar izinli)
+- ✅ Tüm HTML sayfalarında meta robots tag → `index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1`
+- ✅ Sitemap aktif: `https://artisanparqueteurnord.xyz/sitemap.xml`
 
-**YENİ DOMAIN HAZIR OLDUĞUNDA YAPILACAKLAR:**
-1. `robots.txt` dosyasını düzelt:
-   - `Disallow: /` → `Allow: /` yap
-   - Sitemap satırını aktif et
-2. Tüm HTML sayfalarında (`index.html`, `blog.html`, `blog-post.html`):
-   - Meta robots tag'ini `noindex, nofollow` → `index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1` yap
-3. Google Search Console'a yeni domain ekle
-4. Sitemap'i yeniden gönder
-5. SEO_CHECKLIST.md dosyasındaki bu notu kaldır
+Google Search Console'da sitemap'inizi gönderebilir ve URL'lerinizi manuel olarak indeksleme isteği yapabilirsiniz.
 
 ## Kurulum ve Kullanım
 
