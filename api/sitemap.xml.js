@@ -1,7 +1,7 @@
 const { list } = require('@vercel/blob');
 
 const BLOG_POSTS_FILE = 'data/blog-posts.json';
-const BASE_URL = 'https://artisanparqueteurnord.xyz';
+const BASE_URL = 'https://a-parqueteur.xyz';
 
 // Blog yazılarını yükle
 async function loadBlogPosts() {
@@ -105,4 +105,5 @@ module.exports = async function handler(req, res) {
     return res.status(500).send('<?xml version="1.0" encoding="UTF-8"?><error>Internal Server Error</error>');
   }
 };
+
 

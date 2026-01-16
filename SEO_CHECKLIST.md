@@ -8,7 +8,7 @@
 **YAPILAN AYARLAR:**
 - ✅ `robots.txt` → `Allow: /` (tüm sayfalar izinli)
 - ✅ Tüm HTML sayfalarında meta robots tag → `index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1`
-- ✅ Sitemap aktif: `https://artisanparqueteurnord.xyz/sitemap.xml`
+- ✅ Sitemap aktif: `https://a-parqueteur.xyz/sitemap.xml`
 
 **META ROBOTS TAG (Tüm HTML Sayfalarında):**
    - `index.html`
@@ -21,8 +21,8 @@
    ```
 
 **Google Search Console:**
-   - Domain: `artisanparqueteurnord.xyz`
-   - Sitemap gönderildi: `https://artisanparqueteurnord.xyz/sitemap.xml`
+   - Domain: `a-parqueteur.xyz`
+   - Sitemap gönderildi: `https://a-parqueteur.xyz/sitemap.xml`
 
 5. **Bu Notu Kaldır:**
    - SEO_CHECKLIST.md'den bu bölümü sil

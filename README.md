@@ -11,7 +11,7 @@ Mobil odaklı, tek sayfalık iletişim sitesi.
 **AKTİF AYARLAR:**
 - ✅ `robots.txt` → `Allow: /` (tüm sayfalar izinli)
 - ✅ Tüm HTML sayfalarında meta robots tag → `index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1`
-- ✅ Sitemap aktif: `https://artisanparqueteurnord.xyz/sitemap.xml`
+- ✅ Sitemap aktif: `https://a-parqueteur.xyz/sitemap.xml`
 
 Google Search Console'da sitemap'inizi gönderebilir ve URL'lerinizi manuel olarak indeksleme isteği yapabilirsiniz.
 

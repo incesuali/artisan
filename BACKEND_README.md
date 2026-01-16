@@ -52,3 +52,4 @@ Sunucu **http://localhost:8000** adresinde çalışacak.
 Terminal'de `Ctrl + C` tuşlarına bas.
 
 
+

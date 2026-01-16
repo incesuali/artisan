@@ -10,7 +10,7 @@ Disallow: /admin.html
 Disallow: /api/
 
 # Sitemap location
-Sitemap: https://artisanparqueteurnord.xyz/sitemap.xml
+Sitemap: https://a-parqueteur.xyz/sitemap.xml
 
 # Crawl-delay (optional, for aggressive crawlers)
 User-agent: *

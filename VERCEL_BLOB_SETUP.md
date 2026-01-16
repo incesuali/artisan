@@ -32,3 +32,4 @@ Deployment otomatik olarak başlatılacak. API route'ları şu endpoint'lerde ç
 
 Admin panelinden resim yükleyerek test edin. Resimler artık Vercel Blob Storage'da saklanacak ve kalıcı olacak!
 
+

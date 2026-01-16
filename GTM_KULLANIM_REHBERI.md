@@ -49,7 +49,7 @@ Etiket oluşturduktan sonra mutlaka **yayınlamanız** gerekiyor:
 
 ### 1. Preview Modu Açma
 1. GTM'de **"Önizleme" (Preview)** butonuna tıklayın
-2. Site URL'ini girin: `https://artisanparqueteurnord.xyz`
+2. Site URL'ini girin: `https://a-parqueteur.xyz`
 3. Yeni bir sekmede siteniz açılır ve debug modu aktif olur
 
 ### 2. Preview'da Ne Görürsünüz?
@@ -146,4 +146,5 @@ Etiket oluşturduktan sonra mutlaka **yayınlamanız** gerekiyor:
 - Yeniden deploy gerekmez
 - Anında aktif olur
 - GTM container'dan dinamik yüklenir
+
 

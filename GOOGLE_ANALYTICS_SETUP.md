@@ -159,3 +159,4 @@ Tüm iletişim butonlarını birleştirmek için:
 4. 🎯 Conversion rate'i optimize edin
 5. 📱 Mobile vs Desktop analizi yapın
 
+

@@ -99,3 +99,4 @@ GTM üzerinden yönetmek isterseniz:
 - [ ] **Yayınla** butonuna basıldı
 - [ ] Preview modu ile test edildi
 
+
