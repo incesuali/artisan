@@ -280,12 +280,22 @@ async function generateSEOBlogPostGlobal() {
                     words3: words3.length,
                     words4: words4.length
                 });
+                console.log('📋 Kelime içeriği (ilk 3):', {
+                    words1: words1.slice(0, 3),
+                    words2: words2.slice(0, 3),
+                    words3: words3.slice(0, 3)
+                });
                 
-                // localStorage'a da kaydet (fallback için)
-                localStorage.setItem('seoKeywords1', JSON.stringify(words1));
-                localStorage.setItem('seoKeywords2', JSON.stringify(words2));
-                localStorage.setItem('seoKeywords3', JSON.stringify(words3));
-                localStorage.setItem('seoKeywords4', JSON.stringify(words4));
+                // Eğer kelimeler boşsa, hemen fallback'e geçme - önce kontrol et
+                if (words1.length === 0 && words2.length === 0 && words3.length === 0) {
+                    console.warn('⚠️ Vercel Blob Storage\'dan kelimeler boş geldi! Fallback\'e geçiliyor...');
+                } else {
+                    // localStorage'a da kaydet (fallback için)
+                    localStorage.setItem('seoKeywords1', JSON.stringify(words1));
+                    localStorage.setItem('seoKeywords2', JSON.stringify(words2));
+                    localStorage.setItem('seoKeywords3', JSON.stringify(words3));
+                    localStorage.setItem('seoKeywords4', JSON.stringify(words4));
+                }
             }
         }
     } catch (error) {

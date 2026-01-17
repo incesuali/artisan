@@ -109,6 +109,39 @@ document.addEventListener('DOMContentLoaded', function() {
                     showAutoBlogMessage('⏳ Sistem yükleniyor, lütfen birkaç saniye bekleyip tekrar deneyin...', 'error');
                     return;
                 }
+                
+                // Eğer textarea'larda kelimeler varsa ama Vercel Blob Storage'da yoksa, otomatik kaydet
+                const keywords1 = document.getElementById('keywords-1');
+                const keywords2 = document.getElementById('keywords-2');
+                const keywords3 = document.getElementById('keywords-3');
+                
+                if (keywords1 && keywords2 && keywords3) {
+                    const words1 = keywords1.value.split('\n').map(w => w.trim()).filter(w => w);
+                    const words2 = keywords2.value.split('\n').map(w => w.trim()).filter(w => w);
+                    const words3 = keywords3.value.split('\n').map(w => w.trim()).filter(w => w);
+                    
+                    // Eğer textarea'larda kelimeler varsa ama Vercel Blob Storage'da yoksa kaydet
+                    if (words1.length >= 4 && words2.length >= 3 && words3.length >= 7) {
+                        // Vercel Blob Storage'dan kontrol et
+                        try {
+                            const checkResponse = await fetch('/api/seo-keywords');
+                            const checkData = await checkResponse.json();
+                            const storedWords1 = checkData.keywords?.category1 || [];
+                            
+                            // Eğer Vercel Blob Storage'da kelime yoksa ama textarea'larda varsa, otomatik kaydet
+                            if (storedWords1.length === 0) {
+                                console.log('💡 Textarea\'larda kelimeler var ama Vercel Blob Storage\'da yok. Otomatik kaydediliyor...');
+                                showAutoBlogMessage('💾 Kelimeler Vercel Blob Storage\'a kaydediliyor...', 'success');
+                                await saveKeywords();
+                                // Kaydettikten sonra 1 saniye bekle
+                                await new Promise(resolve => setTimeout(resolve, 1000));
+                            }
+                        } catch (checkError) {
+                            console.warn('⚠️ Kelime kontrolü hatası:', checkError);
+                        }
+                    }
+                }
+                
                 await generateBlogPostNow(false);
             } catch (error) {
                 console.error('❌ Blog oluşturma hatası:', error);
