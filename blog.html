@@ -75,6 +75,12 @@
             padding: 20px 15px 40px;
         }
         
+        /* Ana sayfa ile uyumlu stil */
+        .main-content {
+            position: relative;
+            z-index: 1;
+        }
+        
         .blog-page-header {
             text-align: center;
             margin-bottom: 30px;
@@ -202,20 +208,22 @@
     <div class="container">
         <!-- Başlık -->
         <header class="header">
-            <h1>Artisan Parqueteur Nord</h1>
-            <p class="tagline">Le parquet, rien que le parquet.</p>
+            <img src="logo.png" alt="A-PARQUETEUR Logo" class="header-logo">
         </header>
-        
-        <div class="blog-page-container">
-            <div class="blog-page-header">
-                <h2 class="blog-page-title">Blog</h2>
-                <a href="index.html" class="back-to-home">← Retour à l'accueil</a>
+
+        <!-- Ana İçerik -->
+        <main class="main-content">
+            <div class="blog-page-container">
+                <div class="blog-page-header">
+                    <h2 class="blog-page-title">Blog</h2>
+                    <a href="index.html" class="back-to-home">← Retour à l'accueil</a>
+                </div>
+                
+                <div class="blog-posts-container" id="blog-posts-container">
+                    <!-- Blog yazıları buraya dinamik olarak eklenecek -->
+                </div>
             </div>
-            
-            <div class="blog-posts-container" id="blog-posts-container">
-                <!-- Blog yazıları buraya dinamik olarak eklenecek -->
-            </div>
-        </div>
+        </main>
     </div>
 
     <script>
