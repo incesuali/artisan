@@ -32,6 +32,12 @@ async function loadKeywords() {
 // Kelimeleri kaydet
 async function saveKeywords(keywords) {
   try {
+    // Vercel Blob Storage token kontrolü
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error('BLOB_READ_WRITE_TOKEN environment variable eksik!');
+      throw new Error('Vercel Blob Storage token yapılandırılmamış. Lütfen Vercel dashboard\'da Storage ayarlarını kontrol edin.');
+    }
+
     const data = JSON.stringify(keywords, null, 2);
     const buffer = Buffer.from(data, 'utf-8');
 
@@ -40,7 +46,9 @@ async function saveKeywords(keywords) {
       prefix: KEYWORDS_FILE,
     });
 
-    await Promise.all(blobs.map(blob => del(blob.url)));
+    if (blobs.length > 0) {
+      await Promise.all(blobs.map(blob => del(blob.url)));
+    }
 
     // Yeni dosyayı yükle
     const blob = await put(KEYWORDS_FILE, buffer, {
@@ -49,9 +57,10 @@ async function saveKeywords(keywords) {
       addRandomSuffix: false,
     });
 
+    console.log('✅ Keywords saved to Vercel Blob Storage:', blob.url);
     return { success: true, url: blob.url };
   } catch (error) {
-    console.error('Save keywords error:', error);
+    console.error('❌ Save keywords error:', error.message || error);
     throw error;
   }
 }

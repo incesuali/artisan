@@ -5,6 +5,12 @@ const BLOG_POSTS_FILE = 'data/blog-posts.json';
 // Blog yazılarını yükle
 async function loadBlogPosts() {
   try {
+    // Vercel Blob Storage token kontrolü
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.warn('⚠️ BLOB_READ_WRITE_TOKEN environment variable eksik!');
+      return [];
+    }
+
     const { blobs } = await list({
       prefix: BLOG_POSTS_FILE,
     });
@@ -24,7 +30,7 @@ async function loadBlogPosts() {
     const data = await response.json();
     return data.posts || [];
   } catch (error) {
-    console.error('Load blog posts error:', error);
+    console.error('❌ Load blog posts error:', error.message || error);
     // Hata durumunda boş array döndür
     return [];
   }
@@ -33,6 +39,12 @@ async function loadBlogPosts() {
 // Blog yazılarını kaydet
 async function saveBlogPosts(posts) {
   try {
+    // Vercel Blob Storage token kontrolü
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      console.error('BLOB_READ_WRITE_TOKEN environment variable eksik!');
+      throw new Error('Vercel Blob Storage token yapılandırılmamış. Lütfen Vercel dashboard\'da Storage ayarlarını kontrol edin.');
+    }
+
     const data = JSON.stringify({ posts }, null, 2);
     const buffer = Buffer.from(data, 'utf-8');
 
@@ -41,7 +53,9 @@ async function saveBlogPosts(posts) {
       prefix: BLOG_POSTS_FILE,
     });
 
-    await Promise.all(blobs.map(blob => del(blob.url)));
+    if (blobs.length > 0) {
+      await Promise.all(blobs.map(blob => del(blob.url)));
+    }
 
     // Yeni dosyayı yükle
     const blob = await put(BLOG_POSTS_FILE, buffer, {
@@ -50,9 +64,10 @@ async function saveBlogPosts(posts) {
       addRandomSuffix: false,
     });
 
+    console.log('✅ Blog posts saved to Vercel Blob Storage:', blob.url);
     return { success: true, url: blob.url };
   } catch (error) {
-    console.error('Save blog posts error:', error);
+    console.error('❌ Save blog posts error:', error.message || error);
     throw error;
   }
 }
@@ -83,15 +98,25 @@ module.exports = async function handler(req, res) {
 
   if (req.method === 'POST') {
     try {
+      // Vercel Blob Storage token kontrolü
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        console.error('❌ BLOB_READ_WRITE_TOKEN environment variable eksik!');
+        return res.status(500).json({
+          success: false,
+          error: 'Vercel Blob Storage token yapılandırılmamış. Lütfen Vercel dashboard\'da Storage ayarlarını kontrol edin. Environment variable: BLOB_READ_WRITE_TOKEN'
+        });
+      }
+
       const { posts } = req.body;
 
       if (!Array.isArray(posts)) {
         return res.status(400).json({
           success: false,
-          error: 'Geçersiz veri formatı!'
+          error: 'Geçersiz veri formatı! Posts bir array olmalı.'
         });
       }
 
+      console.log('📝 Blog posts kaydediliyor:', posts.length, 'yazı');
       const result = await saveBlogPosts(posts);
 
       return res.status(200).json({
@@ -100,10 +125,12 @@ module.exports = async function handler(req, res) {
         ...result
       });
     } catch (error) {
-      console.error('POST blog posts error:', error);
+      console.error('❌ POST blog posts error:', error.message || error);
+      console.error('❌ Error stack:', error.stack);
       return res.status(500).json({
         success: false,
-        error: error.message || 'Blog yazıları kaydedilirken bir hata oluştu!'
+        error: error.message || 'Blog yazıları kaydedilirken bir hata oluştu!',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   }

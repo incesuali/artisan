@@ -100,7 +100,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     if (generateBlogNowBtn) {
-        generateBlogNowBtn.addEventListener('click', generateBlogPostNow);
+        generateBlogNowBtn.addEventListener('click', async function() {
+            console.log('🚀 Şimdi Blog Yazısı Oluştur butonuna tıklandı');
+            try {
+                // Önce global fonksiyonun yüklenip yüklenmediğini kontrol et
+                if (typeof generateBlogPostNowGlobal === 'undefined') {
+                    console.warn('⚠️ script.js henüz yüklenmedi, bekleniyor...');
+                    showAutoBlogMessage('⏳ Sistem yükleniyor, lütfen birkaç saniye bekleyip tekrar deneyin...', 'error');
+                    return;
+                }
+                await generateBlogPostNow(false);
+            } catch (error) {
+                console.error('❌ Blog oluşturma hatası:', error);
+                if (typeof showAutoBlogMessage === 'function') {
+                    showAutoBlogMessage('❌ Blog yazısı oluşturulurken hata: ' + (error.message || error), 'error');
+                } else {
+                    alert('❌ Blog yazısı oluşturulurken hata: ' + (error.message || error));
+                }
+            }
+        });
+    } else {
+        console.error('❌ generate-blog-now-btn elementi bulunamadı!');
     }
     
     if (testGenerationBtn) {
