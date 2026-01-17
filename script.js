@@ -308,10 +308,17 @@ async function generateSEOBlogPostGlobal() {
     
     if (words1.length < 4 || words2.length < 3 || words3.length < 7) {
         console.error('❌ Yeterli kelime yok!', {
-            words1: words1.length,
-            words2: words2.length,
-            words3: words3.length
+            words1: words1.length + ' (gereken: 4)',
+            words2: words2.length + ' (gereken: 3)',
+            words3: words3.length + ' (gereken: 7)',
+            words4: words4.length
         });
+        if (typeof showAutoBlogMessage === 'function') {
+            showAutoBlogMessage(
+                `❌ Yeterli kelime yok! 1. Alan: ${words1.length}/4, 2. Alan: ${words2.length}/3, 3. Alan: ${words3.length}/7. Lütfen admin panelinden kelimeleri ekleyin ve kaydedin.`,
+                'error'
+            );
+        }
         return null;
     }
     
@@ -345,11 +352,33 @@ async function generateSEOBlogPostGlobal() {
     const useCategory4 = (blogPostsCount + 1) % 4 === 0;
     console.log('📊 Blog yazı sayısı:', blogPostsCount, '- 4. kategori kullanılacak mı?', useCategory4);
     
-    // Kelimeleri seç
+    // Kelimeleri seç - 2. alan için en az 3 kelime gerekli
     const selected1 = getRandomElementsGlobal(words1, 4);
-    const selected2 = getRandomElementsGlobal(words2, Math.min(4, words2.length));
+    // selected2 için en az 3 kelime gerekli (selected2[0], selected2[1], selected2[2] kullanılıyor)
+    // words2.length zaten >= 3 kontrol edildi, ama yine de güvenlik için Math.max kullan
+    const selected2Count = Math.max(3, Math.min(4, words2.length));
+    const selected2 = getRandomElementsGlobal(words2, selected2Count);
     const selected3 = getRandomElementsGlobal(words3, 7);
     const selected4 = useCategory4 && words4.length >= 2 ? getRandomElementsGlobal(words4, 2) : [];
+    
+    console.log('📊 Seçilen kelimeler:', {
+        selected1: selected1.length,
+        selected2: selected2.length,
+        selected3: selected3.length,
+        selected4: selected4.length
+    });
+    
+    // Kelime sayısı kontrolü - güvenlik kontrolü
+    if (!selected1[0] || !selected1[1] || !selected1[2] || !selected1[3] || 
+        !selected2[0] || !selected2[1] || !selected2[2] || 
+        !selected3[0] || !selected3[1] || !selected3[2] || !selected3[3] || !selected3[4] || !selected3[5] || !selected3[6]) {
+        console.error('❌ Seçilen kelimeler eksik!', {
+            selected1: selected1.length,
+            selected2: selected2.length,
+            selected3: selected3.length
+        });
+        return null;
+    }
     
     // Blog başlığı oluştur
     const titleTemplates = [
@@ -400,13 +429,22 @@ async function generateSEOBlogPostGlobal() {
 async function generateBlogPostNowGlobal(isAuto = false) {
     console.log('🚀 generateBlogPostNowGlobal çağrıldı, isAuto:', isAuto);
     
-    // generateSEOBlogPostGlobal artık async, await ekle!
-    const blogPost = await generateSEOBlogPostGlobal();
-    
-    if (!blogPost) {
-        console.error('❌ Blog yazısı oluşturulamadı - kelimeler eksik veya Vercel Blob Storage\'dan yüklenemedi!');
+    let blogPost;
+    try {
+        // generateSEOBlogPostGlobal artık async, await ekle!
+        blogPost = await generateSEOBlogPostGlobal();
+        
+        if (!blogPost) {
+            console.error('❌ Blog yazısı oluşturulamadı - kelimeler eksik veya Vercel Blob Storage\'dan yüklenemedi!');
+            if (typeof showAutoBlogMessage === 'function') {
+                showAutoBlogMessage('❌ Blog yazısı oluşturulamadı! Önce kelimeleri admin panelinden ekleyip "Kelimeleri Kaydet" butonuna tıklayın.', 'error');
+            }
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ generateSEOBlogPostGlobal hatası:', error);
         if (typeof showAutoBlogMessage === 'function') {
-            showAutoBlogMessage('❌ Blog yazısı oluşturulamadı! Önce kelimeleri Vercel Blob Storage\'a kaydedin.', 'error');
+            showAutoBlogMessage('❌ Blog yazısı oluşturulurken hata: ' + (error.message || error), 'error');
         }
         return false;
     }
